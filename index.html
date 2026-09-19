@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign up or Log in</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Poppins:ital,wght@1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <img class="logo" src="logo.jpg" alt="Healthcare logo – green heart with blue cross and leaf">
+    </div>
+
+    <!-- Heading -->
+    <h1>Your Health Is Your Greatest Wealth</h1>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist" aria-label="Account options">
+      <button class="tab active" role="tab" id="tab-signup" aria-selected="true" type="button">Sign up</button>
+      <button class="tab" role="tab" id="tab-login" aria-selected="false" type="button">Log in</button>
+    </div>
+
+    <!-- Form -->
+    <form id="form" novalidate autocomplete="off">
+
+      <div class="field signup-only" id="name-field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name">
+        <p class="error" id="name-error" aria-live="polite"></p>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone no.</label>
+        <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10">
+        <p class="error" id="phone-error" aria-live="polite"></p>
+      </div>
+
+      <div class="field" id="password-field">
+        <label for="password" id="password-label">Create password</label>
+        <input id="password" name="password" type="password" autocomplete="new-password">
+        <p class="error" id="password-error" aria-live="polite"></p>
+      </div>
+
+      <div class="field signup-only" id="confirm-field">
+        <label for="confirm">Confirm password</label>
+        <input id="confirm" name="confirm" type="password" autocomplete="new-password">
+        <p class="error" id="confirm-error" aria-live="polite"></p>
+      </div>
+
+      <button class="submit" id="submit" type="submit">Create account</button>
+      <p class="status" id="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+/* ───────────────────────────────────────────
+   Reset & Base
+   ─────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Figtree', system-ui, -apple-system, sans-serif;
+  background: #d6ebfa;
+  color: #1a1a2e;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ───────────────────────────────────────────
+   Card
+   ─────────────────────────────────────────── */
+.card {
+  background: #fff;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 28px;
+  padding: 36px 28px 32px;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.07);
+}
+
+/* ───────────────────────────────────────────
+   Logo
+   ─────────────────────────────────────────── */
+.logo-wrap {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.logo {
+  width: 96px;
+  height: 96px;
+}
+
+/* ───────────────────────────────────────────
+   Heading
+   ─────────────────────────────────────────── */
+h1 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  color: #1f6fb2;
+  margin-bottom: 26px;
+  letter-spacing: 0.02em;
+}
+
+/* ───────────────────────────────────────────
+   Pill Tabs
+   ─────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 0;
+  border: 2px solid #1f6fb2;
+  border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f6fb2;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.tab:hover {
+  background: rgba(31, 111, 178, 0.08);
+}
+
+.tab:focus-visible {
+  outline: 3px solid #6ab0f3;
+  outline-offset: 2px;
+}
+
+.tab.active {
+  background: #1f6fb2;
+  border-color: #1f6fb2;
+  color: #fff;
+}
+
+/* ───────────────────────────────────────────
+   Form Fields
+   ─────────────────────────────────────────── */
+.field {
+  margin-bottom: 18px;
+  transition: opacity 0.25s ease, max-height 0.3s ease, margin 0.3s ease;
+  max-height: 110px;
+  overflow: hidden;
+}
+
+.field.hidden {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+label {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #3a4a5c;
+  margin-bottom: 7px;
+}
+
+input {
+  width: 100%;
+  padding: 13px 15px;
+  border: 2px solid #d0d8e4;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  background: #f7f9fc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+  border-color: #1f6fb2;
+  box-shadow: 0 0 0 3px rgba(31, 111, 178, 0.15);
+  background: #fff;
+}
+
+input.invalid {
+  border-color: #e04858;
+  box-shadow: 0 0 0 3px rgba(224, 72, 88, 0.1);
+}
+
+input.invalid:focus {
+  border-color: #e04858;
+  box-shadow: 0 0 0 3px rgba(224, 72, 88, 0.18);
+}
+
+/* ───────────────────────────────────────────
+   Error Messages
+   ─────────────────────────────────────────── */
+.error {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #e04858;
+  margin-top: 5px;
+  min-height: 0;
+  line-height: 1.3;
+}
+
+/* ───────────────────────────────────────────
+   Submit Button
+   ─────────────────────────────────────────── */
+.submit {
+  width: 100%;
+  padding: 14px;
+  margin-top: 6px;
+  border: none;
+  border-radius: 14px;
+  background: #1f6fb2;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.submit:hover {
+  background: #18598f;
+}
+
+.submit:active {
+  transform: scale(0.985);
+}
+
+.submit:focus-visible {
+  outline: 3px solid #6ab0f3;
+  outline-offset: 2px;
+}
+
+/* ───────────────────────────────────────────
+   Status Message
+   ─────────────────────────────────────────── */
+.status {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 14px;
+  min-height: 1.2em;
+  color: #1a8a52;
+}
+
+/* ───────────────────────────────────────────
+   Responsive (360px+)
+   ─────────────────────────────────────────── */
+@media (max-width: 420px) {
+  body {
+    padding: 16px 10px;
+  }
+
+  .card {
+    padding: 28px 18px 24px;
+    border-radius: 22px;
+  }
+
+  h1 {
+    font-size: 1.05rem;
+  }
+
+  .logo {
+    width: 80px;
+    height: 80px;
+  }
+}
