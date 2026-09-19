@@ -1,0 +1,673 @@
+/* ==========================================================================
+   Care App - Personal Details Form Styles
+   Palette specified by Design Guidelines:
+   🔵 Main blue:             #1F6FB2
+   🩵 Background light blue: #D6EBFA
+   ⬜ Main white:             #FFFFFF
+   ⬜ Input background:       #F7F9FC
+   🔲 Input border:          #D0D8E4
+   🟢 Logo green:            #4D9A68
+   🔵 Logo cross:            #3D91B5
+   🖤 Text:                  #173B63 (Dark navy)
+   ========================================================================== */
+
+:root {
+  /* User-Defined Brand Palette */
+  --main-blue: #1F6FB2;
+  --main-blue-hover: #195B93;
+  --main-blue-light: #2583D0;
+  --bg-light-blue: #D6EBFA;
+  --main-white: #FFFFFF;
+  --input-bg: #F7F9FC;
+  --input-border: #D0D8E4;
+  --logo-green: #4D9A68;
+  --logo-green-soft: rgba(77, 154, 104, 0.12);
+  --logo-cross: #3D91B5;
+  --text-dark-navy: #173B63;
+  
+  /* Supporting Shades */
+  --text-muted: #527092;
+  --text-light: #7E96B0;
+  --border-focus: #1F6FB2;
+  --error-red: #E53E3E;
+  --error-bg: #FFF5F5;
+
+  /* Elevation & Borders */
+  --shadow-card: 0 20px 45px -12px rgba(23, 59, 99, 0.18), 0 0 1px 1px rgba(208, 216, 228, 0.5);
+  --shadow-btn: 0 6px 18px rgba(31, 111, 178, 0.32);
+  --shadow-btn-hover: 0 8px 24px rgba(31, 111, 178, 0.42);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.18s ease;
+  --transition-medium: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-light-blue);
+  background-image: 
+    radial-gradient(circle at 10% 15%, rgba(255, 255, 255, 0.6) 0%, transparent 40%),
+    radial-gradient(circle at 90% 85%, rgba(31, 111, 178, 0.08) 0%, transparent 50%),
+    linear-gradient(145deg, #D6EBFA 0%, #E6F3FC 50%, #D6EBFA 100%);
+  color: var(--text-dark-navy);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28px 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Outer layout wrapper */
+.app-wrapper {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Card container matching the wireframe boundary */
+.card-container {
+  background: var(--main-white);
+  width: 100%;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--input-border);
+  padding: 34px 30px;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-fast);
+}
+
+/* ==========================================================================
+   Header: Title on Left, Logo at Top Right
+   ========================================================================== */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 6px;
+  border-bottom: none;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.form-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-dark-navy);
+  line-height: 1.25;
+}
+
+.form-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* Logo placement at top right */
+.logo-wrapper {
+  flex-shrink: 0;
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  background: var(--main-white);
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(23, 59, 99, 0.1), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid var(--input-border);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.logo-wrapper:hover {
+  transform: translateY(-2px);
+  border-color: var(--logo-green);
+  box-shadow: 0 8px 20px rgba(77, 154, 104, 0.22);
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* ==========================================================================
+   Form Body & Inputs
+   ========================================================================== */
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: var(--text-dark-navy);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required-star {
+  color: var(--error-red);
+  font-size: 1rem;
+}
+
+.optional-tag {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-counter {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+/* Input wrappers with icons */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--logo-cross);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--main-blue);
+  transform: scale(1.05);
+}
+
+/* Form Controls */
+.form-control {
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-dark-navy);
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.form-control.has-icon {
+  padding-left: 44px;
+}
+
+.form-control::placeholder {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.form-control:hover {
+  border-color: #B5C3D6;
+}
+
+.form-control:focus {
+  background: var(--main-white);
+  border-color: var(--main-blue);
+  box-shadow: 0 0 0 4px rgba(31, 111, 178, 0.16);
+}
+
+.form-control.is-invalid {
+  border-color: var(--error-red);
+  background: var(--error-bg);
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.16);
+}
+
+.field-feedback {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--error-red);
+  min-height: 16px;
+  line-height: 1.2;
+}
+
+/* Phone input group */
+.phone-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.country-prefix {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-dark-navy);
+  user-select: none;
+  transition: border-color var(--transition-fast);
+}
+
+.phone-input-group:focus-within .country-prefix {
+  border-color: var(--main-blue);
+}
+
+.flag-icon {
+  font-size: 1.15rem;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* Textarea styling */
+.textarea-control {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.55;
+}
+
+/* ==========================================================================
+   Upload File Dropzone
+   ========================================================================== */
+.upload-dropzone {
+  border: 2px dashed var(--input-border);
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.drag-over {
+  border-color: var(--main-blue);
+  background: rgba(214, 235, 250, 0.45);
+  transform: translateY(-1px);
+}
+
+.file-input-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.upload-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--main-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--main-blue);
+  box-shadow: 0 3px 10px rgba(23, 59, 99, 0.08);
+  border: 1px solid var(--input-border);
+  margin-bottom: 4px;
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.upload-dropzone:hover .upload-icon-circle {
+  transform: scale(1.1);
+  color: var(--logo-cross);
+  border-color: var(--logo-cross);
+}
+
+.upload-title {
+  font-size: 0.9rem;
+  color: var(--text-dark-navy);
+}
+
+.upload-title strong {
+  color: var(--main-blue);
+  font-weight: 700;
+}
+
+.upload-hint {
+  font-size: 0.77rem;
+  color: var(--text-muted);
+}
+
+/* Uploaded file preview */
+.file-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--main-white);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(23, 59, 99, 0.06);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.file-type-icon {
+  font-size: 1.6rem;
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  overflow: hidden;
+}
+
+.file-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-dark-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 230px;
+}
+
+.file-size {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.btn-remove-file {
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-remove-file:hover {
+  background: var(--error-bg);
+  color: var(--error-red);
+}
+
+/* ==========================================================================
+   Next Button matching wireframe [ Next ]
+   ========================================================================== */
+.form-actions {
+  margin-top: 10px;
+}
+
+.btn-next {
+  width: 100%;
+  padding: 15px 24px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--main-white);
+  background: linear-gradient(135deg, var(--main-blue) 0%, #17578D 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow-btn);
+  transition: all var(--transition-medium);
+}
+
+.btn-next:hover {
+  background: linear-gradient(135deg, var(--main-blue-light) 0%, var(--main-blue) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-btn-hover);
+}
+
+.btn-next:active {
+  transform: translateY(0);
+}
+
+.btn-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.btn-next:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* ==========================================================================
+   Confirmation Step View (Next Step)
+   ========================================================================== */
+.confirmation-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.success-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-animation-circle {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--logo-green-soft);
+  color: var(--logo-green);
+  border: 1.5px solid rgba(77, 154, 104, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  box-shadow: 0 4px 14px rgba(77, 154, 104, 0.2);
+}
+
+.success-header h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-dark-navy);
+}
+
+.success-header p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.summary-card {
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 0.92rem;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--input-border);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.summary-label {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.summary-value {
+  font-weight: 700;
+  color: var(--text-dark-navy);
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 13px 18px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dark-navy);
+  background: var(--main-white);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: var(--input-bg);
+  border-color: #B5C3D6;
+}
+
+.btn-primary {
+  flex: 1.4;
+  padding: 13px 18px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--main-white);
+  background: var(--main-blue);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(31, 111, 178, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background: var(--main-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(31, 111, 178, 0.38);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.card-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  text-align: center;
+  border-top: 1.5px solid var(--input-border);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+@media (max-width: 480px) {
+  body {
+    padding: 12px 8px;
+  }
+  
+  .card-container {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .form-title {
+    font-size: 1.45rem;
+  }
+
+  .logo-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+  }
+}

@@ -53,7 +53,7 @@
   }
 
   tabSignup.addEventListener("click", () => setMode("signup"));
-  tabLogin.addEventListener("click",  () => setMode("login"));
+  tabLogin.addEventListener("click", () => setMode("login"));
 
   // ── Phone: digits only ──
   phoneInput.addEventListener("input", () => {
@@ -64,7 +64,8 @@
     if (
       e.key.length === 1 &&
       !/\d/.test(e.key) &&
-      !e.ctrlKey && !e.metaKey
+      !e.ctrlKey &&
+      !e.metaKey
     ) {
       e.preventDefault();
     }
@@ -89,14 +90,26 @@
   }
 
   // Clear individual errors on typing
-  nameInput.addEventListener("input",     () => clearError(nameInput, nameError));
-  phoneInput.addEventListener("input",    () => clearError(phoneInput, phoneError));
-  passwordInput.addEventListener("input", () => clearError(passwordInput, passwordError));
-  confirmInput.addEventListener("input",  () => clearError(confirmInput, confirmError));
+  nameInput.addEventListener("input", () =>
+    clearError(nameInput, nameError)
+  );
+
+  phoneInput.addEventListener("input", () =>
+    clearError(phoneInput, phoneError)
+  );
+
+  passwordInput.addEventListener("input", () =>
+    clearError(passwordInput, passwordError)
+  );
+
+  confirmInput.addEventListener("input", () =>
+    clearError(confirmInput, confirmError)
+  );
 
   // ── Form Submit ──
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
     clearAllErrors();
     statusEl.textContent = "";
 
@@ -105,52 +118,101 @@
     // Name (sign-up only)
     if (mode === "signup") {
       if (!nameInput.value.trim()) {
-        showError(nameInput, nameError, "Please enter your name.");
+        showError(
+          nameInput,
+          nameError,
+          "Please enter your name."
+        );
         valid = false;
       }
     }
 
     // Phone
     const phone = phoneInput.value.trim();
+
     if (!phone) {
-      showError(phoneInput, phoneError, "Please enter your phone number.");
+      showError(
+        phoneInput,
+        phoneError,
+        "Please enter your phone number."
+      );
       valid = false;
     } else if (phone.length !== 10) {
-      showError(phoneInput, phoneError, "Phone number must be exactly 10 digits.");
+      showError(
+        phoneInput,
+        phoneError,
+        "Phone number must be exactly 10 digits."
+      );
       valid = false;
     }
 
     // Password
     const pw = passwordInput.value;
+
     if (!pw) {
-      showError(passwordInput, passwordError, "Please enter a password.");
+      showError(
+        passwordInput,
+        passwordError,
+        "Please enter a password."
+      );
       valid = false;
     } else if (pw.length < 6) {
-      showError(passwordInput, passwordError, "Password must be at least 6 characters.");
+      showError(
+        passwordInput,
+        passwordError,
+        "Password must be at least 6 characters."
+      );
       valid = false;
     }
 
     // Confirm password (sign-up only)
     if (mode === "signup") {
       const cpw = confirmInput.value;
+
       if (!cpw) {
-        showError(confirmInput, confirmError, "Please confirm your password.");
+        showError(
+          confirmInput,
+          confirmError,
+          "Please confirm your password."
+        );
         valid = false;
       } else if (cpw !== pw) {
-        showError(confirmInput, confirmError, "Passwords do not match.");
+        showError(
+          confirmInput,
+          confirmError,
+          "Passwords do not match."
+        );
         valid = false;
       }
     }
 
+    // Stop here if validation failed
     if (!valid) return;
 
-    // ── Demo success ──
+    // ── Successful Login / Signup ──
     if (mode === "signup") {
-      statusEl.textContent = `Account created for ${nameInput.value.trim()} ✓`;
+      statusEl.textContent =
+        `Account created for ${nameInput.value.trim()} ✓`;
     } else {
-      statusEl.textContent = "Logged in successfully ✓";
+      statusEl.textContent =
+        "Logged in successfully ✓";
     }
 
+    // Save the user's name so the second interface
+    // can use it later if needed
+    const userName = nameInput.value.trim();
+
+    if (userName) {
+      localStorage.setItem("healthcareUserName", userName);
+    }
+
+    // Clear the form
     form.reset();
+
+    // ── Open the second interface ──
+    setTimeout(() => {
+      window.location.href = "biopage/index.html";
+    }, 500);
   });
+
 })();
