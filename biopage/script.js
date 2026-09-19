@@ -210,9 +210,23 @@ document.addEventListener('DOMContentLoaded', () => {
     form.style.display = 'flex';
   });
 
-  // 6. Confirm Proceed Button
+  // 6. Confirm Proceed Button -> Proceed to Dashboard
   confirmProceedBtn.addEventListener('click', () => {
-    alert('Details successfully saved! Proceeding to Step 2 (Medical Assessment)...');
+    const personalData = {
+      dob: dobInput.value,
+      hospital: hospitalInput.value.trim(),
+      phone: numInput.value.trim(),
+      bio: bioInput.value.trim(),
+      fileName: selectedFile ? selectedFile.name : null,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem('healthPersonalData', JSON.stringify(personalData));
+    if (numInput.value.trim()) {
+      localStorage.setItem('healthPhone', numInput.value.trim());
+    }
+    
+    // Redirect to Dashboard
+    window.location.href = '../dashboard.html';
   });
 });
 

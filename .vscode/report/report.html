@@ -1,0 +1,169 @@
+<div class="card">
+
+    <h2>📄 Upload Medical Report</h2>
+
+    <p>
+        Upload your complete report.
+        The system will read the document,
+        extract the results and explain
+        them in simple language.
+    </p>
+
+    <input
+        type="file"
+        id="reportFile"
+        accept="
+        .pdf,
+        .txt,
+        .csv,
+        .jpg,
+        .jpeg,
+        .png,
+        application/pdf,
+        image/*,
+        text/plain,
+        text/csv
+        "
+    >
+
+    <br><br>
+
+    <button
+        class="btn"
+        id="analyzeButton"
+        onclick="analyzeUploadedReport()"
+    >
+        Analyze Report
+    </button>
+
+</div>
+
+
+<div
+    id="reportResult"
+    class="card"
+    style="display:none"
+>
+
+    <h2>
+        📋 Simplified Report
+    </h2>
+
+    <p>
+        <strong>File:</strong>
+        <span id="reportFileName"></span>
+    </p>
+
+
+    <div
+        id="reportWarning"
+        class="warning"
+    ></div>
+
+
+    <section>
+
+        <h3>
+            📝 Overall Summary
+        </h3>
+
+        <p id="overallSummary"></p>
+
+    </section>
+
+
+    <section>
+
+        <h3>
+            🔎 Important Findings
+        </h3>
+
+        <ul id="importantFindings"></ul>
+
+    </section>
+
+
+    <section>
+
+        <h3>
+            📊 Test Results
+        </h3>
+
+        <div style="overflow-x:auto">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Test</th>
+                        <th>Value</th>
+                        <th>Unit</th>
+                        <th>Date</th>
+                        <th>Reference Range</th>
+                        <th>Status</th>
+                        <th>Simple Explanation</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody
+                    id="testResults"
+                ></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <section>
+
+        <h3>
+            📈 Historical Comparison
+        </h3>
+
+        <div
+            id="historicalComparison"
+        ></div>
+
+    </section>
+
+
+    <section>
+
+        <h3>
+            👨‍⚕️ Questions to Discuss With Your Doctor
+        </h3>
+
+        <ul
+            id="doctorQuestions"
+        ></ul>
+
+    </section>
+
+
+    <section>
+
+        <h3>
+            ⚠️ Medical Disclaimer
+        </h3>
+
+        <p
+            id="medicalDisclaimer"
+        ></p>
+
+    </section>
+
+
+    <button
+        class="btn"
+        onclick="window.print()"
+    >
+        Export / Save as PDF
+    </button>
+
+</div>

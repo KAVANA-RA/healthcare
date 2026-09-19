@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthCare Dashboard</title>
+
+<!-- External libraries for full multi-format parsing & OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+<style>
+  :root{
+    --primary:#1F6FB2;
+    --primary-dark:#175b94;
+    --primary-light:#EAF4FC;
+    --bg:#D6EBFA;
+    --card:#FFFFFF;
+    --input:#F7F9FC;
+    --border:#D0D8E4;
+    --green:#4D9A68;
+    --green-bg:#F1FAF4;
+    --teal:#3D91B5;
+    --text:#173B63;
+    --muted:#64748B;
+    --danger:#C24141;
+    --danger-bg:#FDECEC;
+    --warning:#D97706;
+    --warning-bg:#FFFBEB;
+    --shadow:0 10px 30px rgba(31,111,178,.12);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  .app{min-height:100vh;display:flex}
+  .sidebar{
+    width:270px;background:#fff;border-right:1px solid var(--border);
+    padding:22px 16px;position:fixed;left:0;top:0;bottom:0;
+    z-index:20;transform:translateX(0);transition:.25s;
+    overflow-y:auto;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 25px}
+  .brand-icon{font-size:31px}
+  .brand strong{font-size:19px;color:var(--primary)}
+  .nav{display:flex;flex-direction:column;gap:7px}
+  .nav button{
+    border:0;background:transparent;color:var(--text);text-align:left;
+    padding:13px 14px;border-radius:12px;font-weight:600;display:flex;align-items:center;gap:10px;
+    transition:all 0.2s;
+  }
+  .nav button:hover,.nav button.active{background:var(--primary-light);color:var(--primary)}
+  .main{margin-left:270px;width:calc(100% - 270px);min-height:100vh}
+  .topbar{
+    height:76px;background:#fff;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;padding:0 30px;
+    position:sticky;top:0;z-index:10;
+  }
+  .hamburger{display:none;border:0;background:transparent;font-size:26px}
+  .language{border:1px solid var(--border);background:#fff;border-radius:9px;padding:9px 12px;color:var(--text)}
+  .content{max-width:1100px;margin:auto;padding:32px}
+  .page{display:none}.page.active{display:block}
+  .hello{
+    background:linear-gradient(135deg,#fff,#EFF8FE);border-radius:20px;
+    padding:28px;box-shadow:var(--shadow);margin-bottom:24px;border:1px solid var(--border);
+  }
+  .hello h1{margin:0 0 7px;font-size:29px;color:var(--text)}
+  .hello p{margin:0;color:var(--muted);font-size:15px;line-height:1.4}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+  .card{
+    background:#fff;border:1px solid var(--border);border-radius:17px;
+    padding:24px;box-shadow:var(--shadow);margin-bottom:20px;
+  }
+  .card h2,.card h3{margin-top:0;color:var(--text)}
+  .profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-weight:600;margin-bottom:7px}
+  .field input,.field select,.field textarea{
+    width:100%;padding:12px 13px;border:1px solid var(--border);
+    border-radius:10px;background:var(--input);outline:none;color:var(--text);
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);background:#fff}
+  .btn{
+    border:0;background:var(--primary);color:#fff;border-radius:10px;
+    padding:12px 18px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;
+    gap:8px;transition:background 0.2s;text-decoration:none;
+  }
+  .btn:hover{background:var(--primary-dark)}
+  .btn.secondary{background:var(--primary-light);color:var(--primary)}
+  .btn.secondary:hover{background:#d8ebf9}
+  .btn.danger{background:var(--danger-bg);color:var(--danger)}
+  .btn.danger:hover{background:#f8d7da}
+  .btn.success{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+  
+  .report-item,.medicine-item{
+    border:1px solid var(--border);border-radius:13px;padding:15px;margin:10px 0;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;
+  }
+  .report-item small,.medicine-item small{color:var(--muted)}
+  .suggestion{padding:13px 15px;border-left:4px solid var(--green);background:var(--green-bg);border-radius:9px;margin:10px 0;line-height:1.4}
+  .suggestion.warning-suggestion{border-left-color:var(--warning);background:var(--warning-bg)}
+  .medicine-plan{background:#F5FAFF;border:1px solid #CFE4F4;border-radius:12px;padding:16px;line-height:1.5}
+  .empty{color:var(--muted);padding:14px 0;text-align:center}
+  
+  /* Modal */
+  .modal{
+    display:none;position:fixed;inset:0;background:rgba(13,39,64,.45);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal.show{display:flex}
+  .modal-box{background:#fff;width:min(550px,100%);border-radius:18px;padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+  
+  .toast{
+    position:fixed;right:22px;bottom:22px;background:var(--text);color:#fff;
+    padding:14px 20px;border-radius:10px;display:none;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  }
+  .toast.show{display:block}
+  .phone{font-size:24px;font-weight:800;color:var(--primary);margin:10px 0}
+  .chat{min-height:200px;max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:15px;background:#FAFCFE;display:flex;flex-direction:column;gap:8px}
+  .chat-msg{background:var(--primary-light);padding:10px 14px;border-radius:12px;max-width:80%;font-size:14px;line-height:1.4}
+  .chat-msg.user{margin-left:auto;background:var(--primary);color:#fff}
+  .chat-input{display:flex;gap:8px;margin-top:10px}
+  .chat-input input{flex:1;padding:11px;border:1px solid var(--border);border-radius:9px}
+
+  /* ==================================================== */
+  /* ENHANCED MEDICAL REPORTS & ANALYSIS SECTION STYLES   */
+  /* ==================================================== */
+  .upload-card-large{
+    background:#fff;border:1px solid var(--border);border-radius:20px;
+    padding:32px;box-shadow:var(--shadow);text-align:center;margin-bottom:28px;
+  }
+  .upload-dropzone{
+    border:2px dashed #9bc0df;border-radius:16px;padding:36px 20px;
+    background:#FAFDFF;cursor:pointer;transition:all 0.25s;position:relative;
+  }
+  .upload-dropzone:hover,.upload-dropzone.dragover{
+    border-color:var(--primary);background:#F0F7FD;transform:scale(1.005);
+  }
+  .upload-icon-circle{
+    width:64px;height:64px;background:var(--primary-light);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+    color:var(--primary);font-size:28px;
+  }
+  .upload-formats-text{
+    color:var(--muted);font-size:13px;margin-top:8px;
+  }
+  .file-status-wrap{
+    margin-top:20px;padding:14px 18px;border-radius:12px;background:#F6FAFD;
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;
+    text-align:left;
+  }
+  .file-badge{
+    background:var(--primary-light);color:var(--primary);font-size:12px;padding:4px 8px;border-radius:6px;font-weight:600;
+  }
+  .progress-bar-container{
+    width:100%;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden;margin-top:10px;display:none;
+  }
+  .progress-bar-fill{
+    height:100%;background:var(--primary);width:0%;transition:width 0.3s;
+  }
+  .processing-step-text{
+    font-size:13px;color:var(--primary);margin-top:8px;font-weight:600;display:none;
+  }
+
+  /* Analysis Results Sections */
+  .analysis-container{
+    display:none;animation:fadeIn 0.4s ease-in;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .report-info-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:10px;
+  }
+  .info-tile{
+    background:#F8FBFE;border:1px solid var(--border);border-radius:12px;padding:14px 16px;
+  }
+  .info-tile-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:700}
+  .info-tile-value{font-size:16px;font-weight:700;color:var(--text);margin-top:4px;word-break:break-word}
+
+  /* Test Results Table */
+  .table-responsive{
+    overflow-x:auto;margin-top:12px;border-radius:12px;border:1px solid var(--border);
+  }
+  .medical-table{
+    width:100%;border-collapse:collapse;text-align:left;background:#fff;
+  }
+  .medical-table th{
+    background:#F1F7FC;color:var(--text);font-weight:700;padding:13px 16px;font-size:14px;border-bottom:1px solid var(--border);
+  }
+  .medical-table td{
+    padding:13px 16px;font-size:14px;border-bottom:1px solid #EDF2F7;color:#2D3748;
+  }
+  .medical-table tbody tr:hover{background:#F8FBFE}
+  .medical-table tbody tr:last-child td{border-bottom:none}
+
+  /* Status Badges */
+  .badge-status{
+    display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.3px;
+  }
+  .badge-normal{background:var(--green-bg);color:var(--green);border:1px solid #A8D5B5}
+  .badge-high{background:#FFF3DC;color:#B45309;border:1px solid #FDE68A}
+  .badge-low{background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD}
+  .badge-concerning{background:var(--danger-bg);color:var(--danger);border:1px solid #FECACA;animation:pulseRed 2s infinite}
+  @keyframes pulseRed{0%,100%{box-shadow:0 0 0 0 rgba(194,65,65,0.2)}50%{box-shadow:0 0 0 4px rgba(194,65,65,0.2)}}
+
+  /* Danger / Urgent Callout Box */
+  .urgent-warning-box{
+    background:#FFF5F5;border:2px solid var(--danger);border-radius:14px;padding:20px;margin-bottom:20px;
+    display:flex;align-items:flex-start;gap:16px;
+  }
+  .urgent-warning-icon{font-size:32px;line-height:1}
+  .urgent-warning-content h3{margin:0 0 6px;color:var(--danger);font-size:18px}
+  .urgent-warning-content p{margin:0;font-size:14px;color:#742A2A;line-height:1.5}
+
+  /* Important Findings & Simple Explanations */
+  .findings-list{margin:0;padding-left:20px}
+  .findings-list li{margin-bottom:10px;line-height:1.5}
+  .explanation-card{
+    background:#F9FBFC;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;
+  }
+  .explanation-card strong{color:var(--primary)}
+
+  /* Trend Indicator */
+  .trend-badge{
+    display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700;
+  }
+  .trend-up{background:#FEE2E2;color:#991B1B}
+  .trend-down{background:#EFF6FF;color:#1E40AF}
+  .trend-same{background:#F3F4F6;color:#374151}
+
+  /* History items */
+  .history-actions{display:flex;gap:8px}
+
+  /* Medical Disclaimer */
+  .disclaimer-box{
+    background:#F8FAFC;border:1px solid #CBD5E1;border-left:4px solid #64748B;border-radius:10px;
+    padding:16px 20px;margin-top:24px;
+  }
+  .disclaimer-box strong{color:#334155;display:block;margin-bottom:4px}
+  .disclaimer-box p{margin:0;font-size:13px;color:#64748B;line-height:1.5}
+
+  @media(max-width:800px){
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0;width:100%}
+    .hamburger{display:block}
+    .topbar{padding:0 18px}
+    .content{padding:18px}
+    .grid,.profile-grid{grid-template-columns:1fr}
+    .report-info-grid{grid-template-columns:1fr}
+  }
+
+  /* Print Styles for Export Summary */
+  @media print{
+    body{background:#fff;color:#000}
+    .sidebar,.topbar,#uploadAreaCard,#reportHistoryCard,.btn,.hamburger,.modal,.toast{display:none !important}
+    .main{margin-left:0;width:100%}
+    .content{padding:0;max-width:100%}
+    .analysis-container{display:block !important}
+    .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid}
+    .disclaimer-box{border:1px solid #666}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="brand-icon">💚</div><strong>HealthCare</strong></div>
+    <nav class="nav">
+      <button class="active" data-page="home">🏠 Home</button>
+      <button data-page="profile">👤 My Profile</button>
+      <button data-page="reports">📄 Reports</button>
+      <button data-page="care-guide">🩺 Care Guide</button>
+      <button data-page="medicine">💊 Medicine Reminders</button>
+      <button data-page="help">☎️ Help Line</button>
+    </nav>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main">
+    <header class="topbar">
+      <button class="hamburger" id="menuBtn" aria-label="Toggle menu">☰</button>
+      <div></div>
+      <select class="language" id="language">
+        <option>Language ▾</option>
+        <option>English</option><option>Kannada</option><option>Hindi</option>
+      </select>
+    </header>
+
+    <section class="content">
+
+      <!-- 1. HOME -->
+      <div class="page active" id="home">
+        <div class="hello">
+          <h1>Hello, <span id="helloName">Kavana</span> 👋</h1>
+          <p>Welcome to your personal health dashboard. Manage your reports, lifestyle suggestions and medicine reminders in one place.</p>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h2>Quick Actions</h2>
+            <p>Upload a health report and get an easy-to-understand plain language analysis with historical tracking.</p>
+            <button class="btn" onclick="showPage('reports')">📄 Upload Report</button>
+          </div>
+          <div class="card">
+            <h2>Today's Reminder</h2>
+            <p id="homeReminder">No medicine reminder set yet.</p>
+            <button class="btn secondary" onclick="showPage('medicine')">💊 Manage Reminders</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. MY PROFILE -->
+      <div class="page" id="profile">
+        <div class="hello">
+          <h1>My Profile</h1>
+          <p>View and update your personal information.</p>
+        </div>
+        <div class="card">
+          <div class="profile-grid">
+            <div class="field"><label>Name</label><input id="profileName" value="Kavana"></div>
+            <div class="field"><label>Phone Number</label><input id="profilePhone" placeholder="Enter phone number"></div>
+            <div class="field"><label>Age</label><input id="profileAge" type="number" placeholder="Enter age"></div>
+            <div class="field"><label>Blood Group</label><input id="profileBlood" placeholder="e.g. O+"></div>
+            <div class="field"><label>Allergies</label><textarea id="profileAllergy" placeholder="Enter known allergies"></textarea></div>
+            <div class="field"><label>Emergency Contact</label><input id="profileEmergency" placeholder="Emergency contact number"></div>
+          </div>
+          <button class="btn" onclick="saveProfile()">Save Profile</button>
+        </div>
+      </div>
+
+      <!-- 3. MEDICAL REPORTS (Updated & Complete Suite) -->
+      <div class="page" id="reports">
+        <!-- 1. REPORTS HEADER -->
+        <div class="hello">
+          <h1>Medical Reports</h1>
+          <p>Upload your medical report to get a simple and easy-to-understand analysis.</p>
+        </div>
+
+        <!-- 2. UPLOAD AREA (Large Centered Card) -->
+        <div class="upload-card-large" id="uploadAreaCard">
+          <div class="upload-dropzone" id="reportDropZone">
+            <input 
+              type="file" 
+              id="reportFileInput" 
+              accept=".pdf,.doc,.docx,.txt,.csv,.jpg,.jpeg,.png,application/pdf,image/*,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" 
+              style="display:none"
+            >
+            <div class="upload-icon-circle">📄</div>
+            <h3 style="margin:0 0 8px;font-size:18px;">Upload or Drag & Drop Report</h3>
+            <p style="margin:0;color:var(--muted);font-size:14px;">Select any lab test, scan, or blood work document to extract and analyze</p>
+            <div class="upload-formats-text">Supported formats: PDF, DOC/DOCX, TXT, CSV, JPG, JPEG, PNG</div>
+            <br>
+            <button class="btn" type="button" onclick="document.getElementById('reportFileInput').click()">
+              Upload Report
+            </button>
+          </div>
+
+          <!-- Selected File Details & Processing Status -->
+          <div class="file-status-wrap" id="fileStatusWrap" style="display:none;">
+            <div>
+              <strong id="selectedFileName">report.pdf</strong>
+              <div id="fileStatusMessage" style="font-size:13px;color:var(--muted);margin-top:2px;">Ready for analysis</div>
+            </div>
+            <span class="file-badge" id="selectedFileSize">0 KB</span>
+          </div>
+
+          <div class="progress-bar-container" id="progressBarContainer">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+          </div>
+          <div class="processing-step-text" id="processingStepText">Processing document...</div>
+
+          <div style="margin-top:20px;display:flex;justify-content:center;gap:12px;">
+            <button class="btn" id="analyzeBtn" onclick="analyzeSelectedReport()" style="display:none;padding:12px 28px;font-size:15px;">
+              🔍 Analyze Report
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. REPORT ANALYSIS CONTAINER (Exact Requested Structure) -->
+        <div class="analysis-container" id="reportAnalysisContainer">
+
+          <!-- A. Report Information -->
+          <div class="card" id="cardReportInfo">
+            <h2>A. Report Information</h2>
+            <div class="report-info-grid">
+              <div class="info-tile">
+                <div class="info-tile-label">File Name</div>
+                <div class="info-tile-value" id="infoFileName">-</div>
+              </div>
+              <div class="info-tile">
+                <div class="info-tile-label">Report Date</div>
+                <div class="info-tile-value" id="infoReportDate">-</div>
+              </div>
+              <div class="info-tile">
+                <div class="info-tile-label">Patient Name</div>
+                <div class="info-tile-value" id="infoPatientName">-</div>
+              </div>
+              <div class="info-tile">
+                <div class="info-tile-label">Tests Detected</div>
+                <div class="info-tile-value" id="infoTestCount">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- B. Important Summary -->
+          <div class="card" id="cardReportSummary">
+            <h2>B. Important Summary</h2>
+            <p id="overallSummaryText" style="line-height:1.6;font-size:15px;color:var(--text);margin:0;"></p>
+          </div>
+
+          <!-- C. Test Results Table -->
+          <div class="card" id="cardTestResults">
+            <h2>C. Test Results</h2>
+            <div class="table-responsive">
+              <table class="medical-table">
+                <thead>
+                  <tr>
+                    <th>Test Name</th>
+                    <th>Value</th>
+                    <th>Unit</th>
+                    <th>Reference Range</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="testResultsTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- D. Important Findings -->
+          <div class="card" id="cardImportantFindings">
+            <h2>D. Important Findings</h2>
+            <!-- Critical Callout if Urgent -->
+            <div class="urgent-warning-box" id="urgentWarningBox" style="display:none;">
+              <div class="urgent-warning-icon">⚠️</div>
+              <div class="urgent-warning-content">
+                <h3>Urgent Medical Attention May Be Required</h3>
+                <p>
+                  One or more parameters in this report show critically abnormal levels that warrant prompt review by a healthcare professional. 
+                  This automated system does not provide a clinical diagnosis or claim diagnostic certainty from the uploaded report alone. Please consult a qualified doctor or emergency care provider.
+                </p>
+              </div>
+            </div>
+
+            <ul class="findings-list" id="importantFindingsList">
+              <!-- Populated by JS -->
+            </ul>
+          </div>
+
+          <!-- E. Simple Explanation -->
+          <div class="card" id="cardSimpleExplanation">
+            <h2>E. Simple Explanation</h2>
+            <p style="color:var(--muted);font-size:14px;margin-top:0;margin-bottom:16px;">
+              Understanding your test results in plain language without complicated medical jargon:
+            </p>
+            <div id="simpleExplanationsContainer">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- F. Historical Comparison -->
+          <div class="card" id="cardHistoricalComparison">
+            <h2>F. Historical Comparison</h2>
+            <div id="historicalComparisonContent">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- G. Care Guide Connection (In Report View) -->
+          <div class="card" id="cardCareGuideConnection">
+            <h2>Care Guide Connection</h2>
+            <p style="color:var(--muted);font-size:14px;margin-top:0;">
+              Personalized dietary and activity guidance based on the detected findings of this report:
+            </p>
+            <div id="reportCareGuideDiet">
+              <h3 style="font-size:16px;color:var(--primary);margin:12px 0 6px;">🥗 Diet Guidance</h3>
+              <div id="reportDietList"></div>
+            </div>
+            <div id="reportCareGuideExercise" style="margin-top:16px;">
+              <h3 style="font-size:16px;color:var(--primary);margin:12px 0 6px;">🏃 Exercise Guidance</h3>
+              <div id="reportExerciseList"></div>
+            </div>
+            <div class="medicine-plan" style="margin-top:18px;">
+              <strong>Notice:</strong> Recommendations are general educational lifestyle guidance based on laboratory findings. 
+              This website does not prescribe or independently recommend medicines. Please consult your physician for medication management.
+            </div>
+          </div>
+
+          <!-- H. Export Summary Button -->
+          <div style="text-align:center;margin:28px 0;">
+            <button class="btn" style="padding:14px 30px;font-size:16px;" onclick="exportSummaryReport()">
+              📥 Export Summary
+            </button>
+          </div>
+
+          <!-- I. Medical Disclaimer -->
+          <div class="disclaimer-box" id="cardMedicalDisclaimer">
+            <strong>Medical Disclaimer:</strong>
+            <p>
+              This report is for informational purposes only and is not a diagnosis or a substitute for professional medical advice. 
+              Please consult a qualified healthcare professional for proper interpretation and treatment.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- J. REPORT HISTORY (At Bottom of Reports Page) -->
+        <div class="card" id="reportHistoryCard" style="margin-top:28px;">
+          <h2>Report History</h2>
+          <div id="reportHistory">
+            <div class="empty">No reports uploaded yet.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 4. CARE GUIDE (Combined Section: Diet + Exercise) -->
+      <div class="page" id="care-guide">
+        <div class="hello">
+          <h1>Care Guide</h1>
+          <p>Personalized lifestyle and nutritional guidance connected to your report findings.</p>
+        </div>
+        
+        <div class="card">
+          <h2>🥗 Diet Recommendations</h2>
+          <p style="color:var(--muted);font-size:14px;">Nutrition guidance tailored to your health parameters and general wellness.</p>
+          <div id="careGuideDietBox">
+            <div class="suggestion">🥗 Include a wide variety of colorful vegetables, fresh fruits, whole grains and lean proteins.</div>
+            <div class="suggestion">💧 Maintain adequate hydration throughout the day unless fluids are medically restricted.</div>
+            <div class="suggestion">🧂 Minimize ultra-processed foods, deep-fried snacks, and excessive sodium.</div>
+            <div class="suggestion">🍳 Prioritize nutrient-dense whole foods and consistent meal timings.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🏃 Exercise Recommendations</h2>
+          <p style="color:var(--muted);font-size:14px;">Physical activity guidance designed to support safe conditioning and flexibility.</p>
+          <div id="careGuideExerciseBox">
+            <div class="suggestion">🚶 Moderate aerobic walking for 20–30 minutes daily improves cardiovascular stamina and insulin sensitivity.</div>
+            <div class="suggestion">🧘 Light stretching and joint mobility routines help maintain flexibility and posture.</div>
+            <div class="suggestion">🏋️ Resistance and strength exercises should match your personal conditioning and medical guidance.</div>
+          </div>
+          <h3 style="margin-top:20px;">Medicine plan</h3>
+          <div class="medicine-plan">
+            Medicine recommendations should come from a qualified healthcare professional. This website does not prescribe medicines or adjust prescriptions. You can safely track your prescribed medicines in the <strong>Medicine Reminders</strong> section.
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. MEDICINE REMINDERS -->
+      <div class="page" id="medicine">
+        <div class="hello">
+          <h1>Medicine Reminders</h1>
+          <p>Add prescribed medicines and choose when you need to take them.</p>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h2>Add Medicine</h2>
+            <div class="field"><label>Medicine name</label><input id="medName" placeholder="Enter prescribed medicine"></div>
+            <div class="field"><label>Time</label><input id="medTime" type="time"></div>
+            <div class="field">
+              <label>Period</label>
+              <select id="medPeriod">
+                <option>Morning</option>
+                <option>Afternoon</option>
+                <option>Night</option>
+                <option>Custom</option>
+              </select>
+            </div>
+            <div class="field"><label>Instructions</label><input id="medInstructions" placeholder="e.g. After food"></div>
+            <button class="btn" onclick="addMedicine()">Set Reminder</button>
+          </div>
+          <div class="card">
+            <h2>Your Medicines</h2>
+            <div id="medicineList"><div class="empty">No reminders added yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. HELP LINE -->
+      <div class="page" id="help">
+        <div class="hello">
+          <h1>Help Line</h1>
+          <p>Contact support when you need assistance.</p>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h2>☎️ Helpline</h2>
+            <p class="phone">56328 21598</p>
+            <p style="color:var(--muted);margin-bottom:16px;">Available 24/7 for patient queries and assistance.</p>
+            <button class="btn" onclick="window.location.href='tel:5632821598'">Call Now</button>
+          </div>
+          <div class="card">
+            <h2>💬 Chat With Us</h2>
+            <div class="chat" id="chatBox">
+              <div class="chat-msg">Hello! How can we help you today?</div>
+            </div>
+            <div class="chat-input">
+              <input id="chatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendChat()">
+              <button class="btn" onclick="sendChat()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<!-- REMINDER MODAL -->
+<div class="modal" id="reminderModal">
+  <div class="modal-box">
+    <h2>💊 Take your medicine</h2>
+    <p id="reminderText" style="font-size:16px;line-height:1.5;">It is time to take your prescribed medicine.</p>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeReminder()">Dismiss</button>
+      <button class="btn" onclick="closeReminder()">Taken</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+// ==========================================================
+// 1. DATA INITIALIZATION & LOCALSTORAGE
+// ==========================================================
+let medicines = JSON.parse(localStorage.getItem('healthMedicines') || '[]');
+let reportHistory = JSON.parse(localStorage.getItem('healthReports') || '[]');
+let currentAnalysis = null;
+let currentFile = null;
+
+// Initialize user greeting & profile
+function initUser() {
+  const name = localStorage.getItem('healthName') || localStorage.getItem('healthcareUserName') || 'Kavana';
+  document.getElementById('helloName').textContent = name;
+  const profileNameInput = document.getElementById('profileName');
+  if (profileNameInput) profileNameInput.value = name;
+
+  const phone = localStorage.getItem('healthPhone') || '';
+  if (phone && document.getElementById('profilePhone')) {
+    document.getElementById('profilePhone').value = phone;
+  }
+}
+initUser();
+
+// Navigation handler supporting care-guide, diet, exercise aliases
+function showPage(id){
+  // Map diet or exercise to care-guide
+  if (id === 'diet' || id === 'exercise') {
+    id = 'care-guide';
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const targetPage = document.getElementById(id);
+  if (targetPage) targetPage.classList.add('active');
+
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === id);
+  });
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+document.querySelectorAll('.nav button').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+
+const menuBtn = document.getElementById('menuBtn');
+if (menuBtn) {
+  menuBtn.onclick = () => document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ==========================================================
+// 2. PROFILE MANAGEMENT
+// ==========================================================
+function saveProfile(){
+  const name = document.getElementById('profileName').value.trim() || 'User';
+  localStorage.setItem('healthName', name);
+  localStorage.setItem('healthcareUserName', name);
+  document.getElementById('helloName').textContent = name;
+
+  const profileData = {
+    name,
+    phone: document.getElementById('profilePhone').value.trim(),
+    age: document.getElementById('profileAge').value.trim(),
+    blood: document.getElementById('profileBlood').value.trim(),
+    allergies: document.getElementById('profileAllergy').value.trim(),
+    emergency: document.getElementById('profileEmergency').value.trim()
+  };
+  localStorage.setItem('healthProfile', JSON.stringify(profileData));
+  toast('Profile saved successfully.');
+}
+
+// ==========================================================
+// 3. MEDICINE REMINDERS
+// ==========================================================
+function addMedicine(){
+  const name = document.getElementById('medName').value.trim();
+  const time = document.getElementById('medTime').value;
+  const period = document.getElementById('medPeriod').value;
+  const instructions = document.getElementById('medInstructions').value.trim();
+  if(!name || !time){
+    toast('Please enter the medicine name and time.');
+    return;
+  }
+  medicines.push({ name, time, period, instructions, lastAlert: '' });
+  localStorage.setItem('healthMedicines', JSON.stringify(medicines));
+  document.getElementById('medName').value = '';
+  document.getElementById('medTime').value = '';
+  document.getElementById('medInstructions').value = '';
+  renderMedicines();
+  updateHomeReminder();
+  toast('Medicine reminder set.');
+}
+
+function renderMedicines(){
+  const box = document.getElementById('medicineList');
+  if(!medicines.length){
+    box.innerHTML = '<div class="empty">No reminders added yet.</div>';
+    return;
+  }
+  box.innerHTML = medicines.map((m, i) => `
+    <div class="medicine-item">
+      <div>
+        <strong>💊 ${escapeHtml(m.name)}</strong><br>
+        <small>${escapeHtml(m.period)} • ${escapeHtml(m.time)}${m.instructions ? ' • ' + escapeHtml(m.instructions) : ''}</small>
+      </div>
+      <button class="btn danger" onclick="deleteMedicine(${i})">Delete</button>
+    </div>`).join('');
+}
+
+function deleteMedicine(i){
+  medicines.splice(i, 1);
+  localStorage.setItem('healthMedicines', JSON.stringify(medicines));
+  renderMedicines();
+  updateHomeReminder();
+}
+
+function updateHomeReminder(){
+  const el = document.getElementById('homeReminder');
+  if(!medicines.length){
+    el.textContent = 'No medicine reminder set yet.';
+    return;
+  }
+  const m = medicines[medicines.length - 1];
+  el.textContent = `${m.name} at ${m.time} (${m.period})`;
+}
+renderMedicines();
+updateHomeReminder();
+
+function checkReminders(){
+  const now = new Date();
+  const current = now.toTimeString().slice(0, 5);
+  const stamp = now.toISOString().slice(0, 10);
+  medicines.forEach(m => {
+    if(m.time === current && m.lastAlert !== stamp){
+      m.lastAlert = stamp;
+      localStorage.setItem('healthMedicines', JSON.stringify(medicines));
+      document.getElementById('reminderText').textContent = `It is time to take ${m.name}${m.instructions ? ' (' + m.instructions + ')' : ''}.`;
+      document.getElementById('reminderModal').classList.add('show');
+    }
+  });
+}
+setInterval(checkReminders, 15000);
+
+function closeReminder(){
+  document.getElementById('reminderModal').classList.remove('show');
+}
+
+// ==========================================================
+// 4. HELP LINE & CHAT
+// ==========================================================
+function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const box = document.getElementById('chatBox');
+  box.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+  input.value = '';
+  box.scrollTop = box.scrollHeight;
+  setTimeout(() => {
+    box.innerHTML += `<div class="chat-msg">Thanks for reaching out! Our healthcare support team is available at 56328 21598 for immediate guidance.</div>`;
+    box.scrollTop = box.scrollHeight;
+  }, 600);
+}
+
+// ==========================================================
+// 5. DRAG & DROP AND FILE UPLOAD HANDLING
+// ==========================================================
+const dropZone = document.getElementById('reportDropZone');
+const fileInput = document.getElementById('reportFileInput');
+const fileStatusWrap = document.getElementById('fileStatusWrap');
+const selectedFileName = document.getElementById('selectedFileName');
+const selectedFileSize = document.getElementById('selectedFileSize');
+const fileStatusMessage = document.getElementById('fileStatusMessage');
+const analyzeBtn = document.getElementById('analyzeBtn');
+
+['dragenter', 'dragover'].forEach(name => {
+  dropZone.addEventListener(name, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('dragover');
+  });
+});
+
+['dragleave', 'drop'].forEach(name => {
+  dropZone.addEventListener(name, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+  });
+});
+
+dropZone.addEventListener('drop', (e) => {
+  const files = e.dataTransfer.files;
+  if (files && files.length > 0) {
+    handleSelectedFile(files[0]);
+  }
+});
+
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files && e.target.files.length > 0) {
+    handleSelectedFile(e.target.files[0]);
+  }
+});
+
+function handleSelectedFile(file) {
+  currentFile = file;
+  selectedFileName.textContent = file.name;
+  selectedFileSize.textContent = formatBytes(file.size);
+  fileStatusMessage.textContent = 'File selected. Click "Analyze Report" to process.';
+  fileStatusWrap.style.display = 'flex';
+  analyzeBtn.style.display = 'inline-flex';
+  
+  // Hide previous analysis if selecting a new file
+  document.getElementById('reportAnalysisContainer').style.display = 'none';
+  toast(`Selected: ${file.name}`);
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// ==========================================================
+// 6. MEDICAL KNOWLEDGE BASE & PARSER RULES
+// ==========================================================
+// Comprehensive database of clinical lab tests, reference ranges, and plain explanations
+const MEDICAL_TEST_DB = [
+  // CBC
+  {
+    keys: ['hemoglobin', 'hb', 'haemoglobin'],
+    name: 'Hemoglobin',
+    unit: 'g/dL',
+    refMin: 12.0,
+    refMax: 17.5,
+    criticalLow: 7.0,
+    criticalHigh: 20.0,
+    explain: 'Hemoglobin carries oxygen in your red blood cells. Low values indicate anemia, which can cause tiredness and weakness.',
+    dietTip: 'Include iron-rich foods like spinach, lentils, beans, and foods rich in Vitamin C to boost absorption.',
+    exerciseTip: 'Keep activity light to moderate; avoid strenuous exertion until red blood cell counts normalize.'
+  },
+  {
+    keys: ['rbc', 'red blood cell', 'rbc count'],
+    name: 'RBC Count',
+    unit: 'million/mcL',
+    refMin: 4.0,
+    refMax: 5.9,
+    explain: 'Red blood cells transport oxygen throughout your body tissues.',
+    dietTip: 'Maintain a balanced diet rich in iron, folate, and Vitamin B12.',
+    exerciseTip: 'Regular brisk walking supports healthy circulation.'
+  },
+  {
+    keys: ['wbc', 'white blood cell', 'total leukocyte', 'tlc', 'leukocytes'],
+    name: 'WBC (Total Leukocyte Count)',
+    unit: '/mcL',
+    refMin: 4000,
+    refMax: 11000,
+    criticalLow: 2000,
+    criticalHigh: 30000,
+    explain: 'White blood cells defend your body against infections. Elevated levels often signal an active immune response or inflammation.',
+    dietTip: 'Consume antioxidant-rich foods like berries, citrus fruits, and leafy greens to support immunity.',
+    exerciseTip: 'Prioritize adequate sleep and light yoga; avoid heavy workouts during active immune reactions.'
+  },
+  {
+    keys: ['platelets', 'platelet count', 'plt'],
+    name: 'Platelet Count',
+    unit: '/mcL',
+    refMin: 150000,
+    refMax: 450000,
+    criticalLow: 30000,
+    criticalHigh: 900000,
+    explain: 'Platelets help your blood clot and prevent excessive bleeding from injuries.',
+    dietTip: 'Include foods rich in folate and Vitamin K (such as broccoli and dark greens).',
+    exerciseTip: 'Avoid contact sports or high injury-risk activities if platelets are low.'
+  },
+  {
+    keys: ['hematocrit', 'pcv', 'packed cell volume'],
+    name: 'Hematocrit (PCV)',
+    unit: '%',
+    refMin: 36.0,
+    refMax: 50.0,
+    explain: 'Hematocrit represents the percentage of whole blood made up of red blood cells.',
+    dietTip: 'Ensure adequate daily water intake and wholesome nutrient intake.',
+    exerciseTip: 'Moderate walking and hydration before and after workouts.'
+  },
+  {
+    keys: ['neutrophils'],
+    name: 'Neutrophils',
+    unit: '%',
+    refMin: 40,
+    refMax: 75,
+    explain: 'Neutrophils are the primary white blood cells that fight bacterial infections.',
+    dietTip: 'Eat immune-supporting foods with zinc and Vitamin C.',
+    exerciseTip: 'Gentle mobility routines.'
+  },
+  {
+    keys: ['lymphocytes'],
+    name: 'Lymphocytes',
+    unit: '%',
+    refMin: 20,
+    refMax: 45,
+    explain: 'Lymphocytes are white blood cells that fight viral infections and produce antibodies.',
+    dietTip: 'Stay hydrated with warm broths, herbal teas, and nutritious soups.',
+    exerciseTip: 'Gentle walks and restorative rest.'
+  },
+  {
+    keys: ['esr', 'erythrocyte sedimentation rate'],
+    name: 'ESR (Erythrocyte Sedimentation Rate)',
+    unit: 'mm/hr',
+    refMin: 0,
+    refMax: 20,
+    explain: 'ESR measures how quickly red blood cells settle, indicating general inflammation in the body.',
+    dietTip: 'Incorporate anti-inflammatory foods like turmeric, ginger, flaxseeds, and olive oil.',
+    exerciseTip: 'Low-impact stretching and gentle walking to reduce joint stiffness.'
+  },
+  // GLUCOSE & METABOLIC
+  {
+    keys: ['fasting blood sugar', 'fasting glucose', 'fbs', 'glucose fasting', 'blood sugar fasting'],
+    name: 'Fasting Blood Sugar',
+    unit: 'mg/dL',
+    refMin: 70,
+    refMax: 100,
+    criticalLow: 50,
+    criticalHigh: 300,
+    explain: 'Fasting blood sugar measures glucose levels after an overnight fast. High levels indicate prediabetes or diabetes.',
+    dietTip: 'Focus on low-glycemic foods, whole oats, legumes, and eliminate sugary drinks and refined sweets.',
+    exerciseTip: 'Engage in 30 minutes of aerobic exercise (brisk walking, cycling) daily to enhance insulin sensitivity.'
+  },
+  {
+    keys: ['postprandial glucose', 'ppbs', 'glucose pp', 'blood sugar pp', 'post prandial blood sugar'],
+    name: 'Postprandial Blood Sugar',
+    unit: 'mg/dL',
+    refMin: 70,
+    refMax: 140,
+    criticalHigh: 350,
+    explain: 'Measures blood sugar 2 hours after a meal to evaluate how your body processes dietary sugars.',
+    dietTip: 'Pair complex carbohydrates with protein and healthy fats to slow sugar absorption.',
+    exerciseTip: 'A 10–15 minute walk directly after meals helps reduce postprandial glucose spikes.'
+  },
+  {
+    keys: ['random blood sugar', 'rbs', 'glucose random'],
+    name: 'Random Blood Sugar',
+    unit: 'mg/dL',
+    refMin: 70,
+    refMax: 140,
+    criticalLow: 50,
+    criticalHigh: 350,
+    explain: 'Blood sugar taken at any time regardless of meals.',
+    dietTip: 'Limit processed carbs and maintain consistent meal schedules.',
+    exerciseTip: 'Daily moderate walking.'
+  },
+  {
+    keys: ['hba1c', 'glycated hemoglobin', 'glycosylated hemoglobin'],
+    name: 'HbA1c',
+    unit: '%',
+    refMin: 4.0,
+    refMax: 5.6,
+    criticalHigh: 10.0,
+    explain: 'Reflects your average blood glucose levels over the past 2 to 3 months.',
+    dietTip: 'Emphasize high-fiber vegetables, whole pulses, chia seeds, and portion-controlled meals.',
+    exerciseTip: 'Combine aerobic activities (walking, swimming) with twice-weekly light resistance training.'
+  },
+  // LIPID PANEL
+  {
+    keys: ['total cholesterol', 'cholesterol total', 'cholesterol'],
+    name: 'Total Cholesterol',
+    unit: 'mg/dL',
+    refMin: 125,
+    refMax: 200,
+    criticalHigh: 320,
+    explain: 'Total amount of cholesterol in your blood. Elevated levels increase cardiovascular risk.',
+    dietTip: 'Limit saturated fats (butter, fatty meats, palm oil); choose olive oil, almonds, and oats.',
+    exerciseTip: 'At least 150 minutes of moderate cardio exercise per week to improve lipid balance.'
+  },
+  {
+    keys: ['triglycerides', 'serum triglycerides', 'tg'],
+    name: 'Triglycerides',
+    unit: 'mg/dL',
+    refMin: 50,
+    refMax: 150,
+    criticalHigh: 500,
+    explain: 'A type of fat in your blood. High triglycerides are linked to excess refined sugars, alcohol, or calories.',
+    dietTip: 'Significantly reduce refined sugars, sodas, white flour, and alcohol.',
+    exerciseTip: 'Aerobic exercises like jogging, cycling, or brisk walking effectively lower triglycerides.'
+  },
+  {
+    keys: ['hdl', 'hdl cholesterol', 'good cholesterol'],
+    name: 'HDL Cholesterol (Good)',
+    unit: 'mg/dL',
+    refMin: 40,
+    refMax: 60,
+    explain: 'HDL absorbs cholesterol and carries it back to the liver. Higher levels protect heart health.',
+    dietTip: 'Consume healthy omega-3 fatty acids from walnuts, flaxseeds, and fatty fish.',
+    exerciseTip: 'Regular aerobic activity and brisk uphill walking are proven to raise protective HDL.'
+  },
+  {
+    keys: ['ldl', 'ldl cholesterol', 'bad cholesterol'],
+    name: 'LDL Cholesterol (Bad)',
+    unit: 'mg/dL',
+    refMin: 60,
+    refMax: 100,
+    criticalHigh: 190,
+    explain: 'LDL can build up in arterial walls and form plaques. Lower levels are preferred.',
+    dietTip: 'Eat soluble fiber like oatmeal, apples, beans, and lentils to naturally bind and clear LDL.',
+    exerciseTip: 'Daily brisk walking or light jogging to support vascular flexibility.'
+  },
+  // RENAL & ELECTROLYTES
+  {
+    keys: ['creatinine', 'serum creatinine'],
+    name: 'Serum Creatinine',
+    unit: 'mg/dL',
+    refMin: 0.6,
+    refMax: 1.3,
+    criticalHigh: 4.0,
+    explain: 'A waste product from muscle breakdown filtered by kidneys. High levels suggest decreased kidney filtration.',
+    dietTip: 'Drink clean water according to thirst; moderate protein intake and avoid excessive salt.',
+    exerciseTip: 'Gentle to moderate walking; avoid extreme dehydration or intense unmonitored bodybuilding.'
+  },
+  {
+    keys: ['urea', 'blood urea', 'bun', 'blood urea nitrogen'],
+    name: 'Blood Urea / BUN',
+    unit: 'mg/dL',
+    refMin: 7,
+    refMax: 20,
+    criticalHigh: 60,
+    explain: 'Measures nitrogen in blood from urea, reflecting protein metabolism and kidney clearance.',
+    dietTip: 'Stay properly hydrated and avoid excessive high-protein meal supplements.',
+    exerciseTip: 'Steady, non-exhausting physical activity.'
+  },
+  {
+    keys: ['uric acid', 'serum uric acid'],
+    name: 'Serum Uric Acid',
+    unit: 'mg/dL',
+    refMin: 3.5,
+    refMax: 7.2,
+    explain: 'Formed from breakdown of purines. High levels can lead to painful gout attacks or kidney stones.',
+    dietTip: 'Limit red meat, shellfish, high-fructose corn syrup, and beer; drink plenty of water.',
+    exerciseTip: 'Low-impact swimming or cycling to minimize joint stress.'
+  },
+  {
+    keys: ['potassium', 'serum potassium', 'k+'],
+    name: 'Potassium',
+    unit: 'mEq/L',
+    refMin: 3.5,
+    refMax: 5.1,
+    criticalLow: 2.8,
+    criticalHigh: 6.2,
+    explain: 'An essential electrolyte for nerve conduction and heart muscle rhythm.',
+    dietTip: 'Consult your clinician before altering dietary potassium intake.',
+    exerciseTip: 'Avoid vigorous workouts if potassium is significantly abnormal.'
+  },
+  {
+    keys: ['sodium', 'serum sodium', 'na+'],
+    name: 'Sodium',
+    unit: 'mEq/L',
+    refMin: 135,
+    refMax: 145,
+    criticalLow: 120,
+    criticalHigh: 160,
+    explain: 'Maintains fluid balance and cellular function.',
+    dietTip: 'Maintain balanced hydration and avoid excessive processed salt.',
+    exerciseTip: 'Ensure adequate electrolyte replacement during long workouts.'
+  },
+  // LIVER FUNCTION (LFT)
+  {
+    keys: ['bilirubin total', 'total bilirubin', 'bilirubin'],
+    name: 'Total Bilirubin',
+    unit: 'mg/dL',
+    refMin: 0.2,
+    refMax: 1.2,
+    criticalHigh: 12.0,
+    explain: 'Bilirubin is produced during the normal breakdown of red blood cells. Elevated levels can cause jaundice.',
+    dietTip: 'Eat light, easily digestible home-cooked meals; avoid greasy, heavy foods and alcohol.',
+    exerciseTip: 'Ample physical rest and light stretching.'
+  },
+  {
+    keys: ['sgot', 'ast', 'aspartate aminotransferase'],
+    name: 'SGOT / AST',
+    unit: 'U/L',
+    refMin: 10,
+    refMax: 40,
+    criticalHigh: 250,
+    explain: 'An enzyme found in liver and heart cells. Elevations reflect cell stress or inflammation.',
+    dietTip: 'Avoid alcohol and highly processed foods; incorporate cruciferous vegetables like cabbage and broccoli.',
+    exerciseTip: 'Moderate walking; avoid sudden extreme overtraining.'
+  },
+  {
+    keys: ['sgpt', 'alt', 'alanine aminotransferase'],
+    name: 'SGPT / ALT',
+    unit: 'U/L',
+    refMin: 7,
+    refMax: 56,
+    criticalHigh: 250,
+    explain: 'A key liver enzyme. High values typically indicate liver inflammation or fatty liver changes.',
+    dietTip: 'Adopt a Mediterranean-style diet with whole grains, vegetables, nuts, and zero alcohol.',
+    exerciseTip: '30–45 minutes of brisk walking 4–5 times a week supports healthy liver metabolism.'
+  },
+  {
+    keys: ['alp', 'alkaline phosphatase'],
+    name: 'Alkaline Phosphatase (ALP)',
+    unit: 'U/L',
+    refMin: 44,
+    refMax: 147,
+    explain: 'An enzyme associated with liver bile ducts and bone turnover.',
+    dietTip: 'Balanced meals with adequate calcium and vitamin D.',
+    exerciseTip: 'Weight-bearing walks to promote bone and metabolic health.'
+  },
+  // THYROID
+  {
+    keys: ['tsh', 'thyroid stimulating hormone'],
+    name: 'TSH',
+    unit: 'mIU/L',
+    refMin: 0.4,
+    refMax: 4.5,
+    criticalHigh: 15.0,
+    criticalLow: 0.05,
+    explain: 'Regulates thyroid function. High TSH indicates an underactive thyroid (hypothyroidism), while low TSH indicates overactivity.',
+    dietTip: 'Consume balanced iodine and selenium sources (Brazil nuts, eggs, whole grains); avoid crash dieting.',
+    exerciseTip: 'Consistent, moderate-intensity cardio and resistance training to support metabolic rate.'
+  },
+  // VITAMINS & CARDIAC
+  {
+    keys: ['vitamin d', 'vit d', '25-hydroxy vitamin d'],
+    name: 'Vitamin D (25-OH)',
+    unit: 'ng/mL',
+    refMin: 30,
+    refMax: 100,
+    explain: 'Crucial for calcium absorption, bone strength, and immune balance.',
+    dietTip: 'Include fortified milk, mushrooms, and moderate safe morning sunlight exposure.',
+    exerciseTip: 'Outdoor walks in morning sunlight combine exercise with natural vitamin D synthesis.'
+  },
+  {
+    keys: ['vitamin b12', 'vit b12', 'cobalamin'],
+    name: 'Vitamin B12',
+    unit: 'pg/mL',
+    refMin: 200,
+    refMax: 900,
+    explain: 'Essential for nerve health, brain function, and red blood cell production.',
+    dietTip: 'Include dairy, eggs, fortified cereals, and nutritional yeast.',
+    exerciseTip: 'Gentle endurance exercises to keep energy levels balanced.'
+  },
+  {
+    keys: ['crp', 'c-reactive protein', 'c reactive protein'],
+    name: 'C-Reactive Protein (CRP)',
+    unit: 'mg/L',
+    refMin: 0.0,
+    refMax: 3.0,
+    criticalHigh: 10.0,
+    explain: 'An acute-phase protein that increases with systemic inflammation or infection.',
+    dietTip: 'Anti-inflammatory foods: green leafy vegetables, berries, walnuts, olive oil.',
+    exerciseTip: 'Gentle low-impact walks and stress-reducing mindfulness activities.'
+  },
+  {
+    keys: ['troponin', 'troponin-i', 'troponin-t'],
+    name: 'Troponin',
+    unit: 'ng/mL',
+    refMin: 0.0,
+    refMax: 0.04,
+    criticalHigh: 0.04,
+    explain: 'Cardiac protein released into the bloodstream when there is damage to heart muscle.',
+    dietTip: 'Strictly follow heart-healthy medical advice.',
+    exerciseTip: 'Stop strenuous exercise immediately and seek emergency medical evaluation.'
+  },
+  {
+    keys: ['blood pressure', 'bp', 'systolic', 'diastolic'],
+    name: 'Blood Pressure',
+    unit: 'mmHg',
+    refMin: 90,
+    refMax: 120,
+    criticalHigh: 180,
+    criticalLow: 80,
+    explain: 'Measures the pressure of circulating blood against the walls of blood vessels.',
+    dietTip: 'DASH diet approach: reduce sodium to under 2,000 mg/day; increase potassium-rich bananas and greens.',
+    exerciseTip: 'Regular rhythmic aerobic walking for 30 minutes daily lowers resting arterial pressure.'
+  }
+];
+
+// ==========================================================
+// 7. COMPREHENSIVE TEXT EXTRACTION & OCR ENGINE
+// ==========================================================
+async function analyzeSelectedReport() {
+  if (!currentFile) {
+    toast('Please select a report file first.');
+    return;
+  }
+
+  const progressBarContainer = document.getElementById('progressBarContainer');
+  const progressBarFill = document.getElementById('progressBarFill');
+  const processingStepText = document.getElementById('processingStepText');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+
+  progressBarContainer.style.display = 'block';
+  processingStepText.style.display = 'block';
+  analyzeBtn.disabled = true;
+  progressBarFill.style.width = '15%';
+
+  try {
+    let extractedText = '';
+    const fileExt = currentFile.name.split('.').pop().toLowerCase();
+
+    // Step 1: Read according to file type
+    if (fileExt === 'pdf') {
+      updateProgress(30, 'Reading PDF pages...');
+      extractedText = await extractTextFromPDF(currentFile);
+    } else if (['jpg', 'jpeg', 'png'].includes(fileExt)) {
+      updateProgress(25, 'Initializing OCR engine...');
+      extractedText = await extractTextViaOCR(currentFile);
+    } else if (['docx', 'doc'].includes(fileExt)) {
+      updateProgress(35, 'Extracting Word document text...');
+      extractedText = await extractTextFromDocx(currentFile);
+    } else {
+      // Text or CSV
+      updateProgress(35, 'Reading text document...');
+      extractedText = await currentFile.text();
+    }
+
+    updateProgress(75, 'Analyzing clinical parameters and test results...');
+    
+    // Parse the extracted text
+    const analysis = parseReportText(extractedText, currentFile.name);
+    currentAnalysis = analysis;
+
+    updateProgress(100, 'Analysis complete!');
+
+    setTimeout(() => {
+      progressBarContainer.style.display = 'none';
+      processingStepText.style.display = 'none';
+      analyzeBtn.disabled = false;
+      renderReportAnalysis(analysis);
+
+      // Save to Report History
+      saveReportToHistory(analysis);
+      toast('Analysis complete and saved to history!');
+    }, 400);
+
+  } catch (error) {
+    console.error('Error during analysis:', error);
+    progressBarContainer.style.display = 'none';
+    processingStepText.style.display = 'none';
+    analyzeBtn.disabled = false;
+    alert(`Could not complete document extraction: ${error.message || error}`);
+  }
+}
+
+function updateProgress(percent, message) {
+  const progressBarFill = document.getElementById('progressBarFill');
+  const processingStepText = document.getElementById('processingStepText');
+  if (progressBarFill) progressBarFill.style.width = percent + '%';
+  if (processingStepText) processingStepText.textContent = message;
+}
+
+// PDF Text Extraction using PDF.js across ALL pages
+async function extractTextFromPDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('PDF library is loading. Please check your internet connection.');
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  const pdf = await loadingTask.promise;
+  let fullText = '';
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    updateProgress(30 + Math.round((pageNum / pdf.numPages) * 35), `Reading PDF page ${pageNum} of ${pdf.numPages}...`);
+    const page = await pdf.getPage(pageNum);
+    const textContent = await page.getTextContent();
+    const pageStrings = textContent.items.map(item => item.str);
+    fullText += pageStrings.join(' ') + '\n';
+  }
+
+  return fullText;
+}
+
+// Full OCR for Images using Tesseract.js
+async function extractTextViaOCR(file) {
+  if (typeof Tesseract === 'undefined') {
+    throw new Error('OCR library is loading. Please ensure you have an active network connection.');
+  }
+
+  const worker = await Tesseract.createWorker('eng');
+  updateProgress(45, 'Scanning and recognizing text from image...');
+  const ret = await worker.recognize(file);
+  await worker.terminate();
+  return ret.data.text;
+}
+
+// DOCX Extraction using Mammoth
+async function extractTextFromDocx(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  if (typeof mammoth === 'undefined') {
+    throw new Error('Word document reader is loading. Please check your connection.');
+  }
+  const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+  return result.value;
+}
+
+// ==========================================================
+// 8. ADVANCED CLINICAL DATA EXTRACTION ENGINE
+// ==========================================================
+function parseReportText(text, fileName) {
+  const cleanText = text.replace(/\r/g, '\n');
+  const lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Extract Patient Name
+  let patientName = null;
+  const namePatterns = [
+    /(?:patient\s*name|pt\s*name|name\s*of\s*patient|patient|name)\s*[:\-]\s*([A-Za-z\s\.\,\_\-]+?)(?:\s{2,}|\n|$|\t|age|sex|gender|date|dr|ref)/i,
+    /(?:mr\.|mrs\.|ms\.|dr\.)\s+([A-Za-z\s]+)/i
+  ];
+  for (const pat of namePatterns) {
+    const m = cleanText.match(pat);
+    if (m && m[1] && m[1].trim().length > 1 && !/^(of|the|report|test|date)$/i.test(m[1].trim())) {
+      patientName = m[1].trim().replace(/[\r\n].*/g, '').slice(0, 40);
+      break;
+    }
+  }
+
+  // Extract Report Date
+  let reportDate = null;
+  const datePatterns = [
+    /(?:report\s*date|collection\s*date|collected\s*on|date\s*of\s*report|date)\s*[:\-]\s*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})/i,
+    /(?:report\s*date|collection\s*date|date)\s*[:\-]\s*([0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})/i,
+    /\b([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})\b/
+  ];
+  for (const pat of datePatterns) {
+    const m = cleanText.match(pat);
+    if (m && m[1]) {
+      reportDate = m[1].trim();
+      break;
+    }
+  }
+  if (!reportDate) {
+    reportDate = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  // Detect and Extract Tests
+  const detectedTests = [];
+  const recognizedIndices = new Set();
+
+  MEDICAL_TEST_DB.forEach(testDef => {
+    // Check if any test synonym key is in the text
+    for (const key of testDef.keys) {
+      // Regex looking for key followed by values, units, or reference ranges
+      const keyRegex = new RegExp(`\\b${escapeRegExp(key)}\\b([^\n]*)`, 'i');
+      const match = cleanText.match(keyRegex);
+      if (match) {
+        const lineRest = match[1];
+        // Look for numbers like 12.5, 140, 150000, 150,000, 120/80
+        const valMatch = lineRest.match(/[:\s\t=]+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?(?:\/[0-9]{2,3})?)/);
+        if (valMatch && valMatch[1]) {
+          const rawVal = valMatch[1].replace(/,/g, '');
+          const numVal = parseFloat(rawVal);
+
+          // Find reference range if explicitly stated on line
+          let foundRefRange = `${testDef.refMin} - ${testDef.refMax}`;
+          let minRange = testDef.refMin;
+          let maxRange = testDef.refMax;
+          const refRangeMatch = lineRest.match(/([0-9]+(?:\.[0-9]+)?\s*[\-\–]\s*[0-9]+(?:\.[0-9]+)?)/);
+          if (refRangeMatch) {
+            foundRefRange = refRangeMatch[1];
+            const bounds = foundRefRange.split(/[\-\–]/).map(s => parseFloat(s.trim()));
+            if (bounds.length === 2 && !isNaN(bounds[0]) && !isNaN(bounds[1])) {
+              minRange = bounds[0];
+              maxRange = bounds[1];
+            }
+          }
+
+          // Determine status
+          let status = 'Normal';
+          if (testDef.criticalHigh && numVal >= testDef.criticalHigh) {
+            status = 'Potentially Concerning';
+          } else if (testDef.criticalLow && numVal <= testDef.criticalLow) {
+            status = 'Potentially Concerning';
+          } else if (numVal > maxRange) {
+            status = 'High';
+          } else if (numVal < minRange) {
+            status = 'Low';
+          }
+
+          // Ensure no duplicate test entries
+          if (!detectedTests.some(t => t.name.toLowerCase() === testDef.name.toLowerCase())) {
+            detectedTests.push({
+              name: testDef.name,
+              value: rawVal,
+              numericValue: numVal,
+              unit: testDef.unit,
+              refRange: foundRefRange,
+              status: status,
+              explain: testDef.explain,
+              dietTip: testDef.dietTip,
+              exerciseTip: testDef.exerciseTip
+            });
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  // If few specific tests were found, search for generic tabular test lines:
+  // e.g. "Cholesterol 220 mg/dL 125-200"
+  if (detectedTests.length < 2) {
+    const genericLineRegex = /([A-Za-z\s\(\)\/]{3,28})\s+([0-9]{1,4}(?:\.[0-9]+)?)\s+([a-zA-Z%\/\^]+)?\s*([0-9]+(?:\.[0-9]+)?\s*[\-\–]\s*[0-9]+(?:\.[0-9]+)?)?/g;
+    let genericMatch;
+    while ((genericMatch = genericLineRegex.exec(cleanText)) !== null) {
+      const name = genericMatch[1].trim();
+      const valStr = genericMatch[2];
+      const unitStr = genericMatch[3] || '-';
+      const rangeStr = genericMatch[4] || '-';
+
+      // Skip common non-test noise words
+      if (/^(page|date|doctor|hospital|patient|contact|address|phone|table|test|name|result|sample)$/i.test(name)) continue;
+      if (!detectedTests.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+        const numVal = parseFloat(valStr);
+        let status = 'Normal';
+        if (rangeStr !== '-') {
+          const parts = rangeStr.split(/[\-\–]/).map(s => parseFloat(s.trim()));
+          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            if (numVal > parts[1]) status = 'High';
+            else if (numVal < parts[0]) status = 'Low';
+          }
+        }
+        detectedTests.push({
+          name: name,
+          value: valStr,
+          numericValue: numVal,
+          unit: unitStr,
+          refRange: rangeStr,
+          status: status,
+          explain: `Evaluation for ${name}. Value is ${valStr} ${unitStr !== '-' ? unitStr : ''}.`,
+          dietTip: 'Eat a balanced whole-food diet and drink ample fluids.',
+          exerciseTip: 'Engage in moderate daily exercise as recommended by your physician.'
+        });
+      }
+      if (detectedTests.length >= 15) break;
+    }
+  }
+
+  // Summaries & Findings
+  const abnormalTests = detectedTests.filter(t => t.status !== 'Normal');
+  const criticalTests = detectedTests.filter(t => t.status === 'Potentially Concerning');
+
+  // Generate plain summary
+  let summaryText = '';
+  if (detectedTests.length === 0) {
+    summaryText = "Document text was successfully processed, but specific laboratory numerical values could not be extracted with high confidence. Please verify that your report contains standard test rows or clear scans.";
+  } else if (abnormalTests.length === 0) {
+    summaryText = `This report contains ${detectedTests.length} detected parameters. All identified tests appear within their standard reference ranges. Continue maintaining healthy habits and discuss these findings with your doctor during routine follow-ups.`;
+  } else {
+    const highNames = abnormalTests.filter(t => t.status === 'High' || t.status === 'Potentially Concerning').map(t => t.name).join(', ');
+    const lowNames = abnormalTests.filter(t => t.status === 'Low').map(t => t.name).join(', ');
+    summaryText = `This report contains ${detectedTests.length} detected laboratory parameters. There are ${abnormalTests.length} parameter(s) outside expected reference ranges. `;
+    if (highNames) summaryText += `Elevated parameters include: ${highNames}. `;
+    if (lowNames) summaryText += `Lower-than-average parameters include: ${lowNames}. `;
+    summaryText += `Please consult a healthcare professional for clinical correlation and guidance.`;
+  }
+
+  return {
+    id: 'rep_' + Date.now(),
+    fileName: fileName,
+    reportDate: reportDate,
+    patientName: patientName || 'Not detected in report',
+    testCount: detectedTests.length,
+    tests: detectedTests,
+    abnormalTests: abnormalTests,
+    criticalTests: criticalTests,
+    summary: summaryText,
+    analyzedAt: new Date().toISOString()
+  };
+}
+
+// Regex escape helper
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ==========================================================
+// 9. RENDER REPORT ANALYSIS (EXACT REQUIRED SECTIONS ORDER)
+// ==========================================================
+function renderReportAnalysis(analysis) {
+  const container = document.getElementById('reportAnalysisContainer');
+  container.style.display = 'block';
+
+  // A. Report Information
+  document.getElementById('infoFileName').textContent = analysis.fileName;
+  document.getElementById('infoReportDate').textContent = analysis.reportDate;
+  document.getElementById('infoPatientName').textContent = analysis.patientName;
+  document.getElementById('infoTestCount').textContent = analysis.testCount;
+
+  // B. Important Summary
+  document.getElementById('overallSummaryText').textContent = analysis.summary;
+
+  // C. Test Results Table
+  const tableBody = document.getElementById('testResultsTableBody');
+  if (analysis.tests.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;">No specific lab tests identified.</td></tr>';
+  } else {
+    tableBody.innerHTML = analysis.tests.map(t => {
+      let badgeClass = 'badge-normal';
+      if (t.status === 'High') badgeClass = 'badge-high';
+      else if (t.status === 'Low') badgeClass = 'badge-low';
+      else if (t.status === 'Potentially Concerning') badgeClass = 'badge-concerning';
+
+      return `
+        <tr>
+          <td><strong>${escapeHtml(t.name)}</strong></td>
+          <td><strong>${escapeHtml(t.value)}</strong></td>
+          <td>${escapeHtml(t.unit || '-')}</td>
+          <td>${escapeHtml(t.refRange || '-')}</td>
+          <td><span class="badge-status ${badgeClass}">${escapeHtml(t.status)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // D. Important Findings
+  const findingsList = document.getElementById('importantFindingsList');
+  const urgentBox = document.getElementById('urgentWarningBox');
+
+  if (analysis.criticalTests.length > 0) {
+    urgentBox.style.display = 'flex';
+  } else {
+    urgentBox.style.display = 'none';
+  }
+
+  if (analysis.abnormalTests.length === 0) {
+    findingsList.innerHTML = '<li style="color:var(--green);">✓ All identified lab parameters are within expected normal reference intervals.</li>';
+  } else {
+    findingsList.innerHTML = analysis.abnormalTests.map(t => {
+      const isCrit = t.status === 'Potentially Concerning';
+      return `
+        <li style="${isCrit ? 'color:var(--danger);font-weight:700;' : ''}">
+          <strong>${escapeHtml(t.name)}:</strong> Value is <strong>${escapeHtml(t.value)} ${escapeHtml(t.unit)}</strong> 
+          (Status: <span class="badge-status ${isCrit ? 'badge-concerning' : (t.status === 'High' ? 'badge-high' : 'badge-low')}">${escapeHtml(t.status)}</span>). Reference range: ${escapeHtml(t.refRange)}.
+        </li>
+      `;
+    }).join('');
+  }
+
+  // E. Simple Explanation
+  const explanationsBox = document.getElementById('simpleExplanationsContainer');
+  if (analysis.abnormalTests.length === 0) {
+    explanationsBox.innerHTML = `
+      <div class="explanation-card">
+        <strong>All Results Normal:</strong> Your blood and metabolic indicators currently fall within common clinical baselines. Continue healthy nutrition, regular activity, and routine doctor visits.
+      </div>
+    `;
+  } else {
+    explanationsBox.innerHTML = analysis.abnormalTests.map(t => `
+      <div class="explanation-card">
+        <strong>${escapeHtml(t.name)} (${escapeHtml(t.status)}):</strong> ${escapeHtml(t.explain)}
+      </div>
+    `).join('');
+  }
+
+  // F. Historical Comparison
+  renderHistoricalComparison(analysis);
+
+  // G. Care Guide Connection
+  renderCareGuideConnection(analysis);
+
+  // Smooth scroll to analysis
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ==========================================================
+// 10. HISTORICAL COMPARISON
+// ==========================================================
+function renderHistoricalComparison(current) {
+  const box = document.getElementById('historicalComparisonContent');
+  // Find other previous reports
+  const prevReports = reportHistory.filter(r => r.id !== current.id && r.tests && r.tests.length > 0);
+
+  if (!prevReports.length) {
+    box.innerHTML = `
+      <p style="color:var(--muted);font-size:14px;margin:0;">
+        No previous reports available for comparison yet. As you upload subsequent reports, trends and value changes for matching tests will appear here automatically.
+      </p>
+    `;
+    return;
+  }
+
+  // Use the most recent previous report
+  const latestPrev = prevReports[0];
+  const matchingTests = [];
+
+  current.tests.forEach(curTest => {
+    const prevTest = latestPrev.tests.find(pt => pt.name.toLowerCase() === curTest.name.toLowerCase());
+    if (prevTest) {
+      const prevNum = parseFloat(prevTest.value);
+      const curNum = parseFloat(curTest.value);
+      let trend = 'Similar';
+      let trendClass = 'trend-same';
+      let arrow = '↔';
+
+      if (!isNaN(prevNum) && !isNaN(curNum)) {
+        const diff = curNum - prevNum;
+        if (Math.abs(diff) > 0.05) {
+          if (diff > 0) {
+            trend = 'Increased';
+            trendClass = 'trend-up';
+            arrow = '↗';
+          } else {
+            trend = 'Decreased';
+            trendClass = 'trend-down';
+            arrow = '↘';
+          }
+        }
+      }
+
+      matchingTests.push({
+        name: curTest.name,
+        prevVal: prevTest.value,
+        prevDate: latestPrev.reportDate || 'Previous',
+        curVal: curTest.value,
+        curDate: current.reportDate || 'Current',
+        unit: curTest.unit,
+        trend,
+        trendClass,
+        arrow
+      });
+    }
+  });
+
+  if (!matchingTests.length) {
+    box.innerHTML = `
+      <p style="color:var(--muted);font-size:14px;margin:0;">
+        Previous report (${escapeHtml(latestPrev.fileName)}) detected, but no matching test names were found to compare.
+      </p>
+    `;
+    return;
+  }
+
+  box.innerHTML = `
+    <p style="font-size:13px;color:var(--muted);margin-top:0;">
+      Comparing with previous report from <strong>${escapeHtml(latestPrev.reportDate)}</strong> (${escapeHtml(latestPrev.fileName)}):
+    </p>
+    <div class="table-responsive">
+      <table class="medical-table">
+        <thead>
+          <tr>
+            <th>Test Name</th>
+            <th>Previous Value</th>
+            <th>Current Value</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${matchingTests.map(m => `
+            <tr>
+              <td><strong>${escapeHtml(m.name)}</strong></td>
+              <td>${escapeHtml(m.prevVal)} ${escapeHtml(m.unit)} <small style="color:var(--muted);">(${escapeHtml(m.prevDate)})</small></td>
+              <td><strong>${escapeHtml(m.curVal)} ${escapeHtml(m.unit)}</strong> <small style="color:var(--muted);">(${escapeHtml(m.curDate)})</small></td>
+              <td>
+                <span class="trend-badge ${m.trendClass}">${m.arrow} ${escapeHtml(m.trend)}</span>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ==========================================================
+// 11. CARE GUIDE CONNECTION (DIET + EXERCISE)
+// ==========================================================
+function renderCareGuideConnection(analysis) {
+  const dietList = document.getElementById('reportDietList');
+  const exerciseList = document.getElementById('reportExerciseList');
+  const careGuideDietBox = document.getElementById('careGuideDietBox');
+  const careGuideExerciseBox = document.getElementById('careGuideExerciseBox');
+
+  const dietTips = [];
+  const exerciseTips = [];
+
+  analysis.abnormalTests.forEach(t => {
+    if (t.dietTip && !dietTips.includes(t.dietTip)) dietTips.push(t.dietTip);
+    if (t.exerciseTip && !exerciseTips.includes(t.exerciseTip)) exerciseTips.push(t.exerciseTip);
+  });
+
+  // If all normal, provide positive maintenance advice
+  if (!dietTips.length) {
+    dietTips.push('Maintain balanced whole-food nutrition with vibrant vegetables, legumes, whole grains, and lean proteins.');
+    dietTips.push('Keep consistent hydration (around 2–2.5 liters of clean water daily unless restricted).');
+  }
+  if (!exerciseTips.length) {
+    exerciseTips.push('Continue moderate aerobic exercise such as 30 minutes of brisk daily walking.');
+    exerciseTips.push('Include weekly flexibility and light mobility routines to preserve joint flexibility.');
+  }
+
+  const dietHtml = dietTips.map(tip => `<div class="suggestion">🥗 ${escapeHtml(tip)}</div>`).join('');
+  const exerciseHtml = exerciseTips.map(tip => `<div class="suggestion">🏃 ${escapeHtml(tip)}</div>`).join('');
+
+  // Update in report analysis section
+  dietList.innerHTML = dietHtml;
+  exerciseList.innerHTML = exerciseHtml;
+
+  // Also update in the dedicated Care Guide tab
+  if (careGuideDietBox) careGuideDietBox.innerHTML = dietHtml;
+  if (careGuideExerciseBox) careGuideExerciseBox.innerHTML = exerciseHtml;
+}
+
+// ==========================================================
+// 12. EXPORT SUMMARY FUNCTIONALITY
+// ==========================================================
+function exportSummaryReport() {
+  if (!currentAnalysis) {
+    toast('No active report analysis to export.');
+    return;
+  }
+  // Trigger clean print view
+  window.print();
+}
+
+function exportSavedReport(id) {
+  const item = reportHistory.find(r => r.id === id);
+  if (!item) return;
+  currentAnalysis = item;
+  renderReportAnalysis(item);
+  window.print();
+}
+
+// ==========================================================
+// 13. REPORT HISTORY STORAGE & MANAGEMENT
+// ==========================================================
+function saveReportToHistory(analysis) {
+  // Avoid duplicate by id
+  reportHistory = reportHistory.filter(r => r.id !== analysis.id);
+  reportHistory.unshift(analysis);
+  // Cap at 20 reports
+  if (reportHistory.length > 20) reportHistory.pop();
+  localStorage.setItem('healthReports', JSON.stringify(reportHistory));
+  renderReportHistory();
+}
+
+function renderReportHistory() {
+  const box = document.getElementById('reportHistory');
+  if (!reportHistory.length) {
+    box.innerHTML = '<div class="empty">No reports uploaded yet.</div>';
+    return;
+  }
+  box.innerHTML = reportHistory.map((r, i) => `
+    <div class="report-item">
+      <div style="flex:1;">
+        <strong>📄 ${escapeHtml(r.fileName || 'Report')}</strong>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px;">
+          ${escapeHtml(r.reportDate || new Date(r.analyzedAt || Date.now()).toLocaleDateString())} &bull; ${r.testCount || (r.tests ? r.tests.length : 0)} tests detected
+        </div>
+        <div style="font-size:13px;color:var(--text);margin-top:4px;max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${escapeHtml(r.summary || 'Summary recorded.')}
+        </div>
+      </div>
+      <div class="history-actions">
+        <button class="btn secondary" style="padding:8px 12px;font-size:13px;" onclick="viewSavedAnalysis('${r.id}')">View Analysis</button>
+        <button class="btn secondary" style="padding:8px 12px;font-size:13px;" onclick="exportSavedReport('${r.id}')">Export</button>
+        <button class="btn danger" style="padding:8px 12px;font-size:13px;" onclick="deleteReportHistory(${i})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function viewSavedAnalysis(id) {
+  const item = reportHistory.find(r => r.id === id);
+  if (!item) return;
+  currentAnalysis = item;
+  renderReportAnalysis(item);
+  toast(`Viewing analysis for: ${item.fileName}`);
+}
+
+function deleteReportHistory(i) {
+  reportHistory.splice(i, 1);
+  localStorage.setItem('healthReports', JSON.stringify(reportHistory));
+  renderReportHistory();
+  toast('Report removed from history.');
+}
+renderReportHistory();
+
+// ==========================================================
+// 14. GENERAL UTILITIES
+// ==========================================================
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[c]));
+}
+</script>
+</body>
+</html>

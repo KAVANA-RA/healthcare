@@ -198,12 +198,13 @@
         "Logged in successfully ✓";
     }
 
-    // Save the user's name so the second interface
-    // can use it later if needed
+    // Save the user's name so subsequent interfaces can use it
     const userName = nameInput.value.trim();
-
     if (userName) {
       localStorage.setItem("healthcareUserName", userName);
+      localStorage.setItem("healthName", userName);
+    } else if (!localStorage.getItem("healthName") && localStorage.getItem("healthcareUserName")) {
+      localStorage.setItem("healthName", localStorage.getItem("healthcareUserName"));
     }
 
     // Clear the form
