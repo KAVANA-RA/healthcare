@@ -306,8 +306,16 @@
         <div class="grid">
           <div class="card">
             <h2>Quick Actions</h2>
+<<<<<<< HEAD
             <p>Upload a health report and get an easy-to-understand plain language analysis with historical tracking.</p>
             <button class="btn" onclick="showPage('reports')">📄 Upload Report</button>
+=======
+            <p id="dashboardReportDesc">Upload a health report and get an easy-to-understand plain language analysis with historical tracking.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn" id="dashboardReportBtn" onclick="triggerReportUpload()">📄 Upload Report</button>
+              <button class="btn secondary" id="dashboardViewReportsBtn" onclick="showPage('reports')" style="display:none;">View Reports</button>
+            </div>
+>>>>>>> 8770a6f (updateded merge)
           </div>
           <div class="card">
             <h2>Today's Reminder</h2>
@@ -344,9 +352,33 @@
           <p>Upload your medical report to get a simple and easy-to-understand analysis.</p>
         </div>
 
+<<<<<<< HEAD
         <!-- 2. UPLOAD AREA (Large Centered Card) -->
         <div class="upload-card-large" id="uploadAreaCard">
           <div class="upload-dropzone" id="reportDropZone">
+=======
+        <!-- Active Report Banner (Shown when a report is loaded) -->
+        <div class="card" id="activeReportBanner" style="display:none;background:#F6FAFD;border:1px solid var(--border);margin-bottom:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span style="font-size:32px;">📄</span>
+              <div>
+                <strong id="activeReportFileName" style="font-size:17px;color:var(--text);">Report</strong>
+                <div style="font-size:13px;color:var(--muted);margin-top:2px;">
+                  Analyzed on: <span id="activeReportDate">-</span> &bull; <span class="file-badge">Active Analysis</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button class="btn" onclick="triggerReportUpload()">➕ Add Another Report</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. UPLOAD AREA (Large Centered Card) -->
+        <div class="upload-card-large" id="uploadAreaCard">
+          <div class="upload-dropzone" id="reportDropZone" onclick="triggerReportUpload()">
+>>>>>>> 8770a6f (updateded merge)
             <input 
               type="file" 
               id="reportFileInput" 
@@ -617,6 +649,30 @@
   </main>
 </div>
 
+<<<<<<< HEAD
+=======
+<!-- GLOBAL REPORT FILE INPUT & PROCESSING MODAL -->
+<input 
+  type="file" 
+  id="globalReportFileInput" 
+  accept=".pdf,.doc,.docx,.txt,.csv,.jpg,.jpeg,.png,application/pdf,image/*,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" 
+  style="display:none"
+  onchange="if(this.files.length) handleGlobalReportUpload(this.files[0])"
+>
+
+<div class="modal" id="processingModal">
+  <div class="modal-box" style="text-align:center;max-width:440px;">
+    <div class="upload-icon-circle" style="margin:0 auto 16px;">📄</div>
+    <h2 id="processingModalTitle" style="margin:0 0 8px;font-size:20px;color:var(--text);">Analyzing Medical Report</h2>
+    <p id="processingModalFile" style="color:var(--muted);font-size:14px;margin:0 0 16px;word-break:break-word;">Reading complete document and extracting clinical data...</p>
+    <div class="progress-bar-container" style="display:block;margin:14px 0;">
+      <div class="progress-bar-fill" id="processingModalBar" style="width:25%;"></div>
+    </div>
+    <div id="processingModalStep" style="font-size:14px;color:var(--primary);font-weight:700;">Extracting text / OCR...</div>
+  </div>
+</div>
+
+>>>>>>> 8770a6f (updateded merge)
 <!-- REMINDER MODAL -->
 <div class="modal" id="reminderModal">
   <div class="modal-box">
@@ -807,7 +863,25 @@ const selectedFileSize = document.getElementById('selectedFileSize');
 const fileStatusMessage = document.getElementById('fileStatusMessage');
 const analyzeBtn = document.getElementById('analyzeBtn');
 
+<<<<<<< HEAD
 ['dragenter', 'dragover'].forEach(name => {
+=======
+function triggerReportUpload() {
+  const input = document.getElementById('globalReportFileInput');
+  if (input) {
+    input.value = '';
+    input.click();
+  }
+}
+
+async function handleGlobalReportUpload(file) {
+  if (!file) return;
+  await processAndAnalyzeFile(file);
+}
+
+['dragenter', 'dragover'].forEach(name => {
+  if (!dropZone) return;
+>>>>>>> 8770a6f (updateded merge)
   dropZone.addEventListener(name, (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -816,6 +890,10 @@ const analyzeBtn = document.getElementById('analyzeBtn');
 });
 
 ['dragleave', 'drop'].forEach(name => {
+<<<<<<< HEAD
+=======
+  if (!dropZone) return;
+>>>>>>> 8770a6f (updateded merge)
   dropZone.addEventListener(name, (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -823,6 +901,7 @@ const analyzeBtn = document.getElementById('analyzeBtn');
   });
 });
 
+<<<<<<< HEAD
 dropZone.addEventListener('drop', (e) => {
   const files = e.dataTransfer.files;
   if (files && files.length > 0) {
@@ -835,6 +914,24 @@ fileInput.addEventListener('change', (e) => {
     handleSelectedFile(e.target.files[0]);
   }
 });
+=======
+if (dropZone) {
+  dropZone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processAndAnalyzeFile(files[0]);
+    }
+  });
+}
+
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processAndAnalyzeFile(e.target.files[0]);
+    }
+  });
+}
+>>>>>>> 8770a6f (updateded merge)
 
 function handleSelectedFile(file) {
   currentFile = file;
@@ -1219,12 +1316,38 @@ async function analyzeSelectedReport() {
     toast('Please select a report file first.');
     return;
   }
+<<<<<<< HEAD
 
+=======
+  await processAndAnalyzeFile(currentFile);
+}
+
+async function processAndAnalyzeFile(file) {
+  currentFile = file;
+
+  // Show processing modal for dashboard / hamburger triggers
+  const modal = document.getElementById('processingModal');
+  const modalTitle = document.getElementById('processingModalTitle');
+  const modalSub = document.getElementById('processingModalFile');
+  const modalBar = document.getElementById('processingModalBar');
+  const modalStep = document.getElementById('processingModalStep');
+
+  if (modal) {
+    if (modalTitle) modalTitle.textContent = 'Analyzing Medical Report';
+    if (modalSub) modalSub.textContent = `Reading ${file.name} (${formatBytes(file.size)})...`;
+    if (modalBar) modalBar.style.width = '15%';
+    if (modalStep) modalStep.textContent = 'Starting document extraction...';
+    modal.classList.add('show');
+  }
+
+  // Also update in-card progress if visible
+>>>>>>> 8770a6f (updateded merge)
   const progressBarContainer = document.getElementById('progressBarContainer');
   const progressBarFill = document.getElementById('progressBarFill');
   const processingStepText = document.getElementById('processingStepText');
   const analyzeBtn = document.getElementById('analyzeBtn');
 
+<<<<<<< HEAD
   progressBarContainer.style.display = 'block';
   processingStepText.style.display = 'block';
   analyzeBtn.disabled = true;
@@ -1274,6 +1397,75 @@ async function analyzeSelectedReport() {
     progressBarContainer.style.display = 'none';
     processingStepText.style.display = 'none';
     analyzeBtn.disabled = false;
+=======
+  if (progressBarContainer) progressBarContainer.style.display = 'block';
+  if (processingStepText) processingStepText.style.display = 'block';
+  if (analyzeBtn) analyzeBtn.disabled = true;
+  if (progressBarFill) progressBarFill.style.width = '15%';
+
+  function setProgress(pct, msg) {
+    if (modalBar) modalBar.style.width = pct + '%';
+    if (modalStep) modalStep.textContent = msg;
+    if (progressBarFill) progressBarFill.style.width = pct + '%';
+    if (processingStepText) processingStepText.textContent = msg;
+  }
+
+  try {
+    let extractedText = '';
+    const fileExt = file.name.split('.').pop().toLowerCase();
+
+    // Step 1: Read according to file type
+    if (fileExt === 'pdf') {
+      setProgress(30, 'Extracting complete text across all PDF pages...');
+      extractedText = await extractTextFromPDF(file);
+    } else if (['jpg', 'jpeg', 'png'].includes(fileExt)) {
+      setProgress(25, 'Scanning complete image via OCR engine...');
+      extractedText = await extractTextViaOCR(file);
+    } else if (['docx', 'doc'].includes(fileExt)) {
+      setProgress(35, 'Extracting Word document text...');
+      extractedText = await extractTextFromDocx(file);
+    } else {
+      // Text or CSV
+      setProgress(35, 'Reading document text...');
+      extractedText = await file.text();
+    }
+
+    setProgress(75, 'Extracting clinical parameters, reference ranges and findings...');
+    
+    // Parse the extracted text
+    const analysis = parseReportText(extractedText, file.name);
+    currentAnalysis = analysis;
+
+    setProgress(100, 'Analysis complete!');
+
+    setTimeout(() => {
+      if (modal) modal.classList.remove('show');
+      if (progressBarContainer) progressBarContainer.style.display = 'none';
+      if (processingStepText) processingStepText.style.display = 'none';
+      if (analyzeBtn) analyzeBtn.disabled = false;
+
+      // Save to Report History
+      saveReportToHistory(analysis);
+
+      // AUTOMATICALLY NAVIGATE DIRECTLY TO EXISTING REPORTS SECTION
+      showPage('reports');
+
+      // Render the analysis in Reports
+      renderReportAnalysis(analysis);
+
+      // Update Dashboard quick action state
+      updateDashboardReportState();
+
+      toast(`Report analyzed! Showing analysis for: ${file.name}`);
+    }, 450);
+
+  } catch (error) {
+    console.error('Error during report analysis:', error);
+    if (modal) modal.classList.remove('show');
+    if (progressBarContainer) progressBarContainer.style.display = 'none';
+    if (processingStepText) processingStepText.style.display = 'none';
+    if (analyzeBtn) analyzeBtn.disabled = false;
+>>>>>>> 8770a6f (updateded merge)
     alert(`Could not complete document extraction: ${error.message || error}`);
   }
 }
@@ -1516,7 +1708,22 @@ function escapeRegExp(string) {
 // ==========================================================
 function renderReportAnalysis(analysis) {
   const container = document.getElementById('reportAnalysisContainer');
+<<<<<<< HEAD
   container.style.display = 'block';
+=======
+  const uploadCard = document.getElementById('uploadAreaCard');
+  const banner = document.getElementById('activeReportBanner');
+
+  if (uploadCard) uploadCard.style.display = 'none';
+  if (banner) {
+    banner.style.display = 'block';
+    const nameEl = document.getElementById('activeReportFileName');
+    const dateEl = document.getElementById('activeReportDate');
+    if (nameEl) nameEl.textContent = analysis.fileName;
+    if (dateEl) dateEl.textContent = analysis.reportDate || 'Recent Analysis';
+  }
+  if (container) container.style.display = 'block';
+>>>>>>> 8770a6f (updateded merge)
 
   // A. Report Information
   document.getElementById('infoFileName').textContent = analysis.fileName;
@@ -1769,12 +1976,25 @@ function saveReportToHistory(analysis) {
   if (reportHistory.length > 20) reportHistory.pop();
   localStorage.setItem('healthReports', JSON.stringify(reportHistory));
   renderReportHistory();
+<<<<<<< HEAD
+=======
+  updateDashboardReportState();
+>>>>>>> 8770a6f (updateded merge)
 }
 
 function renderReportHistory() {
   const box = document.getElementById('reportHistory');
   if (!reportHistory.length) {
     box.innerHTML = '<div class="empty">No reports uploaded yet.</div>';
+<<<<<<< HEAD
+=======
+    const uploadCard = document.getElementById('uploadAreaCard');
+    const banner = document.getElementById('activeReportBanner');
+    const container = document.getElementById('reportAnalysisContainer');
+    if (uploadCard) uploadCard.style.display = 'block';
+    if (banner) banner.style.display = 'none';
+    if (container) container.style.display = 'none';
+>>>>>>> 8770a6f (updateded merge)
     return;
   }
   box.innerHTML = reportHistory.map((r, i) => `
@@ -1802,16 +2022,73 @@ function viewSavedAnalysis(id) {
   if (!item) return;
   currentAnalysis = item;
   renderReportAnalysis(item);
+<<<<<<< HEAD
+=======
+  showPage('reports');
+>>>>>>> 8770a6f (updateded merge)
   toast(`Viewing analysis for: ${item.fileName}`);
 }
 
 function deleteReportHistory(i) {
+<<<<<<< HEAD
   reportHistory.splice(i, 1);
   localStorage.setItem('healthReports', JSON.stringify(reportHistory));
   renderReportHistory();
   toast('Report removed from history.');
 }
 renderReportHistory();
+=======
+  const deleted = reportHistory.splice(i, 1)[0];
+  localStorage.setItem('healthReports', JSON.stringify(reportHistory));
+  renderReportHistory();
+  updateDashboardReportState();
+
+  if (reportHistory.length === 0) {
+    currentAnalysis = null;
+    const uploadCard = document.getElementById('uploadAreaCard');
+    const banner = document.getElementById('activeReportBanner');
+    const container = document.getElementById('reportAnalysisContainer');
+    if (uploadCard) uploadCard.style.display = 'block';
+    if (banner) banner.style.display = 'none';
+    if (container) container.style.display = 'none';
+  } else if (currentAnalysis && currentAnalysis.id === deleted.id) {
+    currentAnalysis = reportHistory[0];
+    renderReportAnalysis(currentAnalysis);
+  }
+  toast('Report removed from history.');
+}
+
+function updateDashboardReportState() {
+  const btn = document.getElementById('dashboardReportBtn');
+  const viewBtn = document.getElementById('dashboardViewReportsBtn');
+  const desc = document.getElementById('dashboardReportDesc');
+
+  if (reportHistory.length > 0) {
+    if (btn) btn.textContent = '➕ Add Another Report';
+    if (viewBtn) viewBtn.style.display = 'inline-flex';
+    if (desc) desc.textContent = `Latest report analyzed: ${reportHistory[0].fileName} (${reportHistory[0].reportDate || 'Recent'}).`;
+  } else {
+    if (btn) btn.textContent = '📄 Upload Report';
+    if (viewBtn) viewBtn.style.display = 'none';
+    if (desc) desc.textContent = 'Upload a health report to get a simple, plain-language analysis with historical tracking.';
+  }
+}
+
+// Initial state setup
+if (reportHistory.length > 0) {
+  currentAnalysis = reportHistory[0];
+  renderReportAnalysis(currentAnalysis);
+} else {
+  const uploadCard = document.getElementById('uploadAreaCard');
+  const banner = document.getElementById('activeReportBanner');
+  const container = document.getElementById('reportAnalysisContainer');
+  if (uploadCard) uploadCard.style.display = 'block';
+  if (banner) banner.style.display = 'none';
+  if (container) container.style.display = 'none';
+}
+renderReportHistory();
+updateDashboardReportState();
+>>>>>>> 8770a6f (updateded merge)
 
 // ==========================================================
 // 14. GENERAL UTILITIES
